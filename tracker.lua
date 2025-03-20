@@ -1,17 +1,31 @@
-local Object = require 'classic'
+local Object = require 'tts/classic'
+local Track = require 'tts/track'
+local Obj = require 'tts/obj'
 
 local Tracker = Object:extend('Tracker')
 
 function Tracker:new(params)
-    self.marker = params.marker
-    self:bind(params.track)
+    if params.load then
+        self.marker = Obj.get {guid = params.load.marker}
+        self.track = Track.load(params.load.track)
+    else
+        self.marker = params.marker
+        self:bind(params.track)
+    end
 end
+
+function Tracker:save()
+    return {marker = self.marker.guid, track = self.track:save()}
+end
+
+function Tracker.load(data)
+    return Tracker {load = data} end
 
 function Tracker:bind(track) self.track = track end
 
 function Tracker:advance(n)
     n = n or 1
-    local i = self.track:boundedIndex(self:index())
+    local i = self:index() or 0
     self:reset(i + n)
 end
 
@@ -23,7 +37,7 @@ end
 function Tracker:reset(i)
     i = self.track:boundedIndex(i or 1)
     local pt = self.track.points[i]
-    self.marker:snapTo(pt.snap)
+    self.marker:snapTo(pt)
 end
 
 function Tracker:index() return self.track:indexOf(self.marker) end

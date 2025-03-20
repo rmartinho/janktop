@@ -20,6 +20,15 @@ function iter.map(t, f)
     return r
 end
 
+function iter.filterMap(t, f)
+    local r = {}
+    for _, v in ipairs(t) do
+        local x = f(v)
+        if x then table.insert(r, x) end
+    end
+    return r
+end
+
 function iter.has(t, c) return iter.find(t, function(x) return x == c end) end
 
 function iter.all(t, f)
@@ -30,6 +39,17 @@ end
 
 function iter.hasAll(t, ...)
     return iter.all({...}, function(x) return iter.has(t, x) end)
+end
+
+function iter.any(t, f)
+    f = f or function(x) return x end
+    local r = {}
+    for _, v in ipairs(t) do if f(v) then return true end end
+    return false
+end
+
+function iter.hasAny(t, ...)
+    return iter.any({...}, function(x) return iter.has(t, x) end)
 end
 
 return iter

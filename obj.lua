@@ -1,4 +1,4 @@
-local Proxy = require 'proxy'
+local Proxy = require 'tts/proxy'
 
 local Obj = {}
 local ObjExt = {}
@@ -29,8 +29,6 @@ function Obj.get(params)
 end
 
 function Obj.use(o) return fromProxy(Proxy.create(o)) end
-
-Obj.table = fromProxy(Proxy.lazy(function() return Tables.getTableObject() end))
 
 function ObjExt:snapTo(snap)
     self.setPositionSmooth(snap.position)

@@ -1,38 +1,36 @@
-local Object = require 'classic'
-local iter = require 'iter'
-local snap = require 'snap'
+local Object = require 'tts/classic'
+local iter = require 'tts/iter'
+local Snap = require 'tts/snap'
 
 local Track = Object:extend('Track')
-
-local function buildTrackPoints(base, snapTag, markerTag)
-    local snaps = snap.filterTagOrdered(base, snapTag)
-    return iter.map(snaps, function(s)
-        local s1 = {position = base.positionToWorld(s.position)}
-        setmetatable(s1, {__index = s})
-        s = s1
-        local z = spawnObject {
-            type = 'ScriptingTrigger',
-            position = s.position,
-            rotation = s.rotation_snap and {0, 0, 0} or s.rotation,
-            scale = {0.1, 1, 0.1}
-        }
-        if markerTag then z.addTag(markerTag) end
-        return {snap = s, zone = z}
-    end)
-end
 
 function Track.__len(self) return #self.points end
 
 function Track:new(params)
     params = params or {}
-    if params.base and params.snap_tag then
-        self.points = buildTrackPoints(params.base, params.snap_tag,
-                                       params.marker_tag)
+    if params.load then
+        self.loop = params.load.loop
+        self.points = iter.map(params.load.points, Snap.load)
     else
-        self.points = {}
+        if params.snapTag then
+            self.points = Snap.get {
+                base = params.base,
+                tag = params.snapTag,
+                ordered = true,
+                zoned = true
+            }
+        else
+            self.points = {}
+        end
+        self.loop = params.loop == true
     end
-    self.loop = params.loop == true
 end
+
+function Track:save()
+    return {loop = self.loop, points = iter.map(self.points, Snap.save)}
+end
+
+function Track.load(data) return Track {load = data} end
 
 function Track:boundedIndex(i)
     if self.loop then

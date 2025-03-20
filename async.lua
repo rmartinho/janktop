@@ -1,4 +1,4 @@
-local Object = require 'classic'
+local Object = require 'tts/classic'
 
 local Waiter = Object:extend('Waiter')
 
