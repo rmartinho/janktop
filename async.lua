@@ -14,7 +14,10 @@ function Waiter:wait(f)
     coroutine.yield()
 end
 
-function Waiter:rest(o) return self:wait(function() return o.resting == true end) end
+function Waiter:rest(o)
+    if o.resting then self:wait() end
+    return self:wait(function() return o.resting == true end)
+end
 
 function async(f)
     local coro = {}
