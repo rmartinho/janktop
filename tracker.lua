@@ -42,7 +42,10 @@ end
 function Tracker:reset(i)
     i, looped = self.track:boundedIndex(i or 1)
     local pt = self.track.points[i]
-    self.marker:snapTo(pt)
+    async(function()
+        self.marker:snapTo(pt)
+        async.wait.rest(self.marker)
+    end)
     if self.onStep then self:onStep(i, looped) end
     return i, looped
 end
