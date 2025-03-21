@@ -34,13 +34,14 @@ function Track.load(data) return Track {load = data} end
 
 function Track:boundedIndex(i)
     if self.loop then
-        return ((i - 1) % #self) + 1
+        local i2 = ((i - 1) % #self) + 1
+        return i2, i2 < i
     elseif i > #self then
-        return #self
+        return #self, true
     elseif i < 1 then
-        return 1
+        return 1, true
     else
-        return i
+        return i, false
     end
 end
 

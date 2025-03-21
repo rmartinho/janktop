@@ -8,7 +8,8 @@ function Snap:new(params)
     if params.load then
         self.position = params.load.position
         self.rotation = params.load.rotation
-        self.zone = params.load.zone and Obj.get {guid = params.load.zone} or nil
+        self.zone = params.load.zone and Obj.get {guid = params.load.zone} or
+                        nil
     else
         if params.base then
             self.position = params.base.positionToWorld(params.point.position)
@@ -16,15 +17,19 @@ function Snap:new(params)
             self.position = params.point.position
         end
         if params.point.rotation_snap then
-            self.rotation = params.point.rotation
+            if params.base then
+                self.rotation = params.base.getRotation() +
+                                    params.point.rotation
+            else
+                self.rotation = params.point.rotation
+            end
         end
 
         if params.zoned then
             self.zone = spawnObject {
                 type = 'ScriptingTrigger',
-                position = params.point.position,
-                rotation = params.point.rotation_snap and {0, 0, 0} or
-                    params.point.rotation,
+                position = self.position,
+                rotation = self.rotation or {0, 0, 0},
                 scale = {0.1, 1, 0.1}
             }
             for _, tag in pairs(params.point.tags) do

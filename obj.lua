@@ -32,7 +32,7 @@ function Obj.use(o) return fromProxy(Proxy.create(o)) end
 
 function ObjExt:snapTo(snap)
     self.setPositionSmooth(snap.position)
-    if snap.rotation_snap then self.setRotationSmooth(snap.rotation) end
+    if snap.rotation then self.setRotationSmooth(snap.rotation) end
 end
 
 function ObjExt:isIn(zone)
