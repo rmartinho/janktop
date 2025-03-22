@@ -1,4 +1,3 @@
-local Obj = require("tts/obj")
 local Turns = require("tts/turns")
 
 return function(load)

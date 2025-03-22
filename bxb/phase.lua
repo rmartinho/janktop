@@ -5,12 +5,6 @@ local async = require("tts/async")
 
 return function(load)
     load.phase = function(data)
-        local factions = {
-            Yellow = 'Workers',
-            Orange = 'Prisoners',
-            Green = 'Neighbors',
-            Purple = 'Students'
-        }
         local phases = {
             night = {
                 {name = 'Police Ops', enter = doPoliceOps},
@@ -51,6 +45,7 @@ return function(load)
 
         function phase:onLoop()
             local color = turns:pass()
+            self.marker.setColorTint(color)
             if self:isNight() then
                 if flame:color() == color then
                     self:rebind(dayTrack)
@@ -61,7 +56,6 @@ return function(load)
                 flame:advance()
                 self:rebind(nightTrack)
             end
-            self.marker.setColorTint(color)
         end
 
         function phase:phase(i)

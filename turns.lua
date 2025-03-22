@@ -3,6 +3,7 @@ local Object = require 'tts/classic'
 local Turns = Object:extend('Turns')
 
 function Turns:new(params)
+    params = params or {}
     if params.load then
         self.players = params.load.players
         self.i = params.load.i
