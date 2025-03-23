@@ -10,7 +10,9 @@ function Discard:new(params)
     params = params or {}
     if params.load then
         self.tag = params.load.tag
-        self.deck = Snap.load(params.load.deck)
+        self.name = params.load.name
+        self.description = params.load.description
+        self.draw = Snap.load(params.load.draw)
         self.discard = Snap.load(params.load.discard)
         self.flip = params.load.flip
         self.refreshes = params.load.refreshes
@@ -22,7 +24,7 @@ function Discard:new(params)
             tag = params.snapTag,
             zoned = true
         }
-        self.deck = iter.find(snaps, function(s) return s:hasTag('Draw') end)
+        self.draw = iter.find(snaps, function(s) return s:hasTag('Draw') end)
         self.discard = iter.find(snaps,
                                  function(s) return s:hasTag('Discard') end)
         self.flip = params.flip ~= false
@@ -34,7 +36,9 @@ end
 function Discard:save()
     return {
         tag = self.tag,
-        deck = self.deck:save(),
+        name = self.name,
+        description = self.description,
+        draw = self.draw:save(),
         discard = self.discard:save(),
         flip = self.flip,
         refreshes = self.refreshes,
@@ -55,23 +59,23 @@ function Discard:deal(n)
 end
 
 function Discard:deal1()
-    local deck = self.deck.zone.getObjects()[1]
-    local discard = self.discard.zone.getObjects()[1]
-    local dropPos = discard and Obj.use(discard):deckDropPosition() or
+    local draw = self:drawPile()
+    local discard = self:discardPile()
+    local dropPos = discard and discard:deckDropPosition() or
                         self.discard.position
     async(function()
-        if not deck and self.refreshes then
+        if not draw and self.refreshes then
             self:refresh()
             self:deal1()
-        elseif deck.type == 'Card' then
-            if self.locks then deck.setLock(false) end
-            if self.flip then deck.flip() end
-            Obj.use(deck):snapTo{position = dropPos}
+        elseif draw.type == 'Card' then
+            if self.locks then draw.setLock(false) end
+            if self.flip then draw.flip() end
+            draw:snapTo{position = dropPos}
             self:unlock()
-            async.wait.rest(deck)
+            async.wait.rest(draw)
             self:lock()
         else
-            local card = deck.takeObject({
+            local card = draw.takeObject({
                 position = dropPos,
                 rotation = self.discard.rotation,
                 flip = self.flip
@@ -79,8 +83,31 @@ function Discard:deal1()
             self:unlock()
             async.wait.rest(card)
             self:lock()
+            if self.onTopChanged then self:onTopChanged() end
         end
     end)
+end
+
+function Discard:drawPile() return Obj.use(self.draw.zone.getObjects()[1]) end
+
+function Discard:discardPile() return Obj.use(self.discard.zone.getObjects()[1]) end
+
+function Discard:topOfDraw()
+    local deck = self:drawPile()
+    if deck.type == 'Card' then
+        return deck
+    else
+        return deck.getObjects()[1]
+    end
+end
+
+function Discard:topOfDiscard()
+    local deck = self:discardPile()
+    if deck.type == 'Card' then
+        return deck
+    else
+        return deck.getObjects()[1]
+    end
 end
 
 function Discard:refresh()
@@ -88,9 +115,14 @@ function Discard:refresh()
     if not deck then return end
     async(function()
         if self.flip then deck.flip() end
-        Obj.use(deck):snapTo(self.deck)
+        Obj.use(deck):snapTo(self.draw)
         deck.shuffle()
         async.wait.rest(deck)
+        if deck.type == 'Deck' then
+            deck.setName(self.name)
+            deck.setDescription(self.description)
+        end
+        if self.onRefresh then self:onRefresh() end
     end)
 end
 
@@ -110,9 +142,13 @@ function Discard:setup()
     async(function()
         if self.tag then
             local deck = Obj.get {tag = self.tag}
-            deck:snapTo(self.deck)
+            deck.shuffle()
+            deck:snapTo(self.draw)
             async.wait.rest(deck)
+            if self.onTopChanged then self:onTopChanged() end
         end
+        self.name = self:drawPile().getName()
+        self.description = self:drawPile().getDescription()
     end)
 end
 

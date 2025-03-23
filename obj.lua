@@ -28,7 +28,7 @@ function Obj.get(params)
     end
 end
 
-function Obj.use(o) return fromProxy(Proxy.create(o)) end
+function Obj.use(o) if o then return fromProxy(Proxy.create(o)) end end
 
 function ObjExt:snapTo(snap)
     self.setPositionSmooth(snap.position)
@@ -44,7 +44,8 @@ end
 function ObjExt:deckDropPosition()
     local bounds = self.getVisualBoundsNormalized()
     return {
-        bounds.center.x, bounds.center.y + bounds.size.y / 2 + 0.5, bounds.center.z
+        bounds.center.x, bounds.center.y + bounds.size.y / 2 + 0.5,
+        bounds.center.z
     }
 end
 
