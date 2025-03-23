@@ -63,4 +63,12 @@ setmetatable(async.wait, {
 
 function async.pause() return async.wait(async.pauseDuration or 10) end
 
+function async.fork(f)
+    local active = Thread.active
+    Thread.active = nil
+    local r = f()
+    Thread.active = active
+    return r
+end
+
 return async
