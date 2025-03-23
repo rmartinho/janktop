@@ -38,7 +38,9 @@ function Waiter:wait()
     Thread.wait(self.f)
 end
 
-function Waiter.rest(o) return Waiter(function() return o.resting end, true) end
+function Waiter.rest(o)
+    return Waiter(function() return o.isDestroyed() or o.resting end, true)
+end
 
 local async = {Waiter = Waiter, wait = {}}
 setmetatable(async, {
@@ -58,5 +60,7 @@ setmetatable(async.wait, {
         end
     end
 })
+
+function async.pause() return async.wait(async.pauseDuration or 10) end
 
 return async

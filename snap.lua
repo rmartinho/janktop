@@ -8,6 +8,7 @@ function Snap:new(params)
     if params.load then
         self.position = params.load.position
         self.rotation = params.load.rotation
+        self.tags = params.load.tags
         self.zone = params.load.zone and Obj.get {guid = params.load.zone} or
                         nil
     else
@@ -24,6 +25,8 @@ function Snap:new(params)
                 self.rotation = params.point.rotation
             end
         end
+
+        self.tags = params.point.tags
 
         if params.zoned then
             self.zone = spawnObject {
@@ -43,6 +46,7 @@ function Snap:save()
     return {
         position = self.position,
         rotation = self.rotation,
+        tags = self.tags,
         zone = self.zone and self.zone.guid or nil
     }
 end
@@ -80,7 +84,7 @@ function Snap.get(params)
             params.point = p
             if not params.tag then
                 return Snap(params)
-            elseif hasTag(p, tag) then
+            elseif hasTag(p, params.tag) then
                 return Snap(params)
             end
         end)

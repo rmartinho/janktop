@@ -41,4 +41,11 @@ function ObjExt:isIn(zone)
     return false
 end
 
+function ObjExt:deckDropPosition()
+    local bounds = self.getVisualBoundsNormalized()
+    return {
+        bounds.center.x, bounds.center.y + bounds.size.y / 2 + 0.5, bounds.center.z
+    }
+end
+
 return Obj

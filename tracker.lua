@@ -39,6 +39,8 @@ function Tracker:reverse(n)
     self.advance(self, -n)
 end
 
+function Tracker:setup() return self:reset() end
+
 function Tracker:reset(i)
     i, looped = self.track:boundedIndex(i or 1)
     local pt = self.track.points[i]
