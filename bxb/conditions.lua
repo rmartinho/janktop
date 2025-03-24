@@ -1,5 +1,6 @@
-local Obj = require("tts/obj")
-local Display = require("tts/display")
+local Obj = require 'tts/obj'
+local Display = require 'tts/display'
+local async = require 'tts/async'
 
 return function(load)
     load.conditions = function(data)
@@ -10,8 +11,15 @@ return function(load)
             conditions = Display {
                 base = board,
                 snapTag = 'Condition',
-                locks = true,
+                locks = true
             }
+        end
+
+        function conditions:setup()
+            async(function()
+                Display.setup(self)
+                self:deal()
+            end)
         end
 
         return conditions
