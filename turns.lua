@@ -11,7 +11,7 @@ function Turns:new(params)
       params = params or {}
       params.colors = params.colors or getSeatedPlayers()
       params.n = params.n or #params.colors
-      self.players = {}
+      self.players = {} --TODO move this to setup
       for i = 1, params.n do
           table.insert(self.players,
                        table.remove(params.colors, math.random(#params.colors)))

@@ -1,5 +1,4 @@
-local Obj = require("tts/obj")
-local Discard = require("tts/discard")
+local Discard = require 'tts/discard'
 
 return function(load)
     load.ops = function(data)

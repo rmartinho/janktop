@@ -30,6 +30,10 @@ end
 
 function Obj.use(o) if o then return fromProxy(Proxy.create(o)) end end
 
+function Obj.load(data) return Obj.get {guid = data.guid} end
+
+function ObjExt:save() return {guid = self.guid} end
+
 function ObjExt:snapTo(snap)
     self.setPositionSmooth(snap.position)
     if snap.rotation then self.setRotationSmooth(snap.rotation) end
