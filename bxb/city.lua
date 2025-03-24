@@ -66,6 +66,7 @@ function City.load(data) return City {load = data} end
 function City:setup()
     async(function()
         local liberation = Obj.get {tag = 'Liberation'}
+        liberation.shuffle()
         layDistricts(liberation)
         async.fork(function()
             async(function()
@@ -75,10 +76,13 @@ function City:setup()
             end)
 
             local districtsA = Obj.get {tags = {'District', 'A'}}
+            districtsA.shuffle()
             layDistricts(districtsA, 'A', true)
             local districtsB = Obj.get {tags = {'District', 'B'}}
+            districtsB.shuffle()
             layDistricts(districtsB, 'B', true)
             local districtsC = Obj.get {tags = {'District', 'C'}}
+            districtsC.shuffle()
             layDistricts(districtsC, 'C', true)
         end)
         async.pause()
