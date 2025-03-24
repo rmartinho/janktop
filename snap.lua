@@ -82,9 +82,11 @@ function Snap.get(params)
     else
         return iter.filterMap(pts, function(p)
             params.point = p
-            if not params.tag then
+            if not params.tag and not params.tags then
                 return Snap(params)
-            elseif hasTag(p, params.tag) then
+            elseif params.tags and hasAllTags(p, params.tags) then
+                return Snap(params)
+            elseif params.tag and hasTag(p, params.tag) then
                 return Snap(params)
             end
         end)

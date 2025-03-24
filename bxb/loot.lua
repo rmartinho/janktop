@@ -22,13 +22,13 @@ return function(load)
     load.graffiti = function(data)
         local graffiti
         if data then
-            graffiti = Obj.load(data)
+            graffiti = Discard.load(data)
         else
-            graffiti = Obj.get {tag = 'Graffiti'}
-            function graffiti:setup()
-                local snap = Snap.get{base = board, tag = 'Graffiti'}[1]
-                graffiti:snapTo(snap)
-            end
+            graffiti = Discard {
+                base = board,
+                snapTag = 'Graffiti',
+                locks = true
+            }
         end
         return graffiti
     end

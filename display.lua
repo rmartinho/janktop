@@ -38,7 +38,7 @@ function Display:save()
     }
 end
 
-function Display:load(data) return self {load = data} end
+function Display.load(data) return Display {load = data} end
 
 function Display:deal(n)
     n = n or 1
@@ -50,16 +50,18 @@ function Display:deal(n)
     end)
 end
 
+local dropOffset = Vector(0, 0.5, 0)
+
 function Display:deal1()
     local draw = self:drawPile()
     local snap = iter.find(self.displays,
                            function(d) return #d.zone.getObjects() == 0 end)
     if snap then
-        local card = draw.takeObject({
-            position = snap.position,
+        local card = draw.takeObject {
+            position = Vector(snap.position) + dropOffset,
             rotation = snap.rotation,
             flip = true
-        })
+        }
         async.wait.rest(card)
         if self.locks then card.setLock(true) end
         if self.onTopChanged then self:onTopChanged() end
@@ -86,8 +88,9 @@ function Display:setup()
         if self.tag then
             local deck = Obj.get {tag = self.tag}
             deck.shuffle()
-            deck:snapTo(self.draw)
+            deck:snapTo(self.draw, dropOffset)
             async.wait.rest(deck)
+            deck.setLock(self.locks)
             if self.onTopChanged then self:onTopChanged() end
         end
     end)

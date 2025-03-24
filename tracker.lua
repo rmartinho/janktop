@@ -19,7 +19,7 @@ function Tracker:save()
     return {marker = self.marker.guid, track = self.track:save()}
 end
 
-function Tracker:load(data) return self {load = data} end
+function Tracker.load(data) return Tracker {load = data} end
 
 function Tracker:rebind(track, i)
     self.track = track
@@ -41,11 +41,13 @@ end
 
 function Tracker:setup() return self:reset() end
 
+local dropOffset = Vector(0, 0.5, 0)
+
 function Tracker:reset(i)
     i, looped = self.track:boundedIndex(i or 1)
     local pt = self.track.points[i]
     async(function()
-        self.marker:snapTo(pt)
+        self.marker:snapTo(pt, dropOffset)
         async.wait.rest(self.marker)
     end)
     if self.onStep then self:onStep(i, looped) end

@@ -1,4 +1,5 @@
 local Proxy = require 'tts/proxy'
+local async = require 'tts/async'
 
 local Obj = {}
 local ObjExt = {}
@@ -15,16 +16,19 @@ local function fromGuid(guid)
     return fromProxy(Proxy.lazy(function() return getObjectFromGUID(guid) end))
 end
 
-local function fromTag(tag)
-    return
-        fromProxy(Proxy.lazy(function() return getObjectsWithTag(tag)[1] end))
+local function fromTags(tags)
+    return fromProxy(Proxy.lazy(function()
+        return getObjectsWithAllTags(tags)[1]
+    end))
 end
 
 function Obj.get(params)
     if params.guid then
         return fromGuid(params.guid)
+    elseif params.tags then
+        return fromTags(params.tags)
     elseif params.tag then
-        return fromTag(params.tag)
+        return fromTags {params.tag}
     end
 end
 
@@ -34,9 +38,19 @@ function Obj.load(data) return Obj.get {guid = data.guid} end
 
 function ObjExt:save() return {guid = self.guid} end
 
-function ObjExt:snapTo(snap)
-    self.setPositionSmooth(snap.position)
+function ObjExt:snapTo(snap, offset)
+    local pos = Vector(snap.position)
+    if offset then pos = pos + Vector(offset) end
+    local locked = self.getLock()
+    if offset then self.setLock(false) end
+    self.setPositionSmooth(pos)
     if snap.rotation then self.setRotationSmooth(snap.rotation) end
+    if offset then
+        async(function()
+            async.wait.rest(self)
+            self.setLock(true)
+        end)
+    end
 end
 
 function ObjExt:isIn(zone)
@@ -48,8 +62,7 @@ end
 function ObjExt:deckDropPosition()
     local bounds = self.getVisualBoundsNormalized()
     return {
-        bounds.center.x, bounds.center.y + bounds.size.y / 2 + 0.5,
-        bounds.center.z
+        bounds.center.x, bounds.center.y + bounds.size.y / 2, bounds.center.z
     }
 end
 

@@ -46,7 +46,7 @@ function Discard:save()
     }
 end
 
-function Discard:load(data) return self {load = data} end
+function Discard.load(data) return Discard {load = data} end
 
 function Discard:deal(n)
     n = n or 1
@@ -57,6 +57,8 @@ function Discard:deal(n)
         end
     end)
 end
+
+local dropOffset = Vector(0, 0.5, 0)
 
 function Discard:deal1()
     local draw = self:drawPile()
@@ -70,16 +72,16 @@ function Discard:deal1()
         elseif draw.type == 'Card' then
             if self.locks then draw.setLock(false) end
             if self.flip then draw.flip() end
-            draw:snapTo{position = dropPos}
+            draw:snapTo({position = dropPos}, dropOffset)
             self:unlock()
             async.wait.rest(draw)
             self:lock()
         else
-            local card = draw.takeObject({
-                position = dropPos,
+            local card = draw.takeObject {
+                position = Vector(dropPos) + dropOffset,
                 rotation = self.discard.rotation,
                 flip = self.flip
-            })
+            }
             self:unlock()
             async.wait.rest(card)
             self:lock()
@@ -115,7 +117,7 @@ function Discard:refresh()
     if not deck then return end
     async(function()
         if self.flip then deck.flip() end
-        Obj.use(deck):snapTo(self.draw)
+        Obj.use(deck):snapTo(self.draw, dropOffset)
         deck.shuffle()
         async.wait.rest(deck)
         if deck.type == 'Deck' then
@@ -143,8 +145,9 @@ function Discard:setup()
         if self.tag then
             local deck = Obj.get {tag = self.tag}
             deck.shuffle()
-            deck:snapTo(self.draw)
+            deck:snapTo(self.draw, dropOffset)
             async.wait.rest(deck)
+            deck.setLock(self.locks)
             if self.onTopChanged then self:onTopChanged() end
         end
         self.name = self:drawPile().getName()
