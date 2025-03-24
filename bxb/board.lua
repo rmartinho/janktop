@@ -7,11 +7,10 @@ return function(load)
 
         function board:setup()
             async(function()
-                board.setLock(false)
-                board.flip()
-                async.wait.rest(self)
-                board.setLock(true)
+                local cover = Obj.get {tag = 'Cover'}
+                cover.setPositionSmooth({0, 20, 0})
                 async.pause()
+                cover.destroy()
             end)
         end
         return board
