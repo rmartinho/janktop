@@ -12,7 +12,13 @@ return function(load)
                 marker = Obj.get {tag = 'Flame'},
                 track = Track {snapTag = 'Flame', loop = true}
             }
-            -- TODO trim track to player count 
+        end
+
+        function flame:setup()
+            Tracker.setup(self, turns.i)
+            for i = #turns.players + 1, #self.track do
+                table.remove(self.track.points)
+            end
         end
 
         function flame:color() return turns.players[self:index()] end

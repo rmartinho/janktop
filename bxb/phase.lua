@@ -34,8 +34,11 @@ return function(load)
                 track = nightTrack
             }
         end
-
-        phase.marker.setColorTint(turns:current())
+    
+        function phase:setup()
+            Tracker.setup(self)
+            self.marker.setColorTint(turns:current())
+        end
 
         function phase:onStep(i)
             self.marker.setDescription(

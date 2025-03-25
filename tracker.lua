@@ -39,7 +39,7 @@ function Tracker:reverse(n)
     self.advance(self, -n)
 end
 
-function Tracker:setup() return self:reset() end
+function Tracker:setup(i) return self:reset(i) end
 
 local dropOffset = Vector(0, 0.5, 0)
 
