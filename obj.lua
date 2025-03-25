@@ -66,4 +66,17 @@ function ObjExt:deckDropPosition()
     }
 end
 
+function ObjExt:removeObjectsIf(pos, f)
+    local cards = self.getObjects()
+    local toRemove = {}
+    for i = 1, #cards do
+        if f(cards[i]) then table.insert(toRemove, cards[i].guid) end
+    end
+
+    for _, guid in pairs(toRemove) do
+        local card = self.takeObject({guid = guid, position = pos})
+        Wait.frames(function() card.destroy() end)
+    end
+end
+
 return Obj
