@@ -5,6 +5,7 @@ local Obj = require 'tts/obj'
 local Snap = Object:extend('Snap')
 
 function Snap:new(params)
+    params = params or {}
     if params.load then
         self.position = params.load.position
         self.rotation = params.load.rotation
@@ -55,12 +56,12 @@ function Snap.load(data) return Snap {load = data} end
 
 local function hasTag(pt, tag) return iter.has(pt.tags, tag) and true or false end
 Snap.hasTag = hasTag
-local function hasAllTags(pt, ...)
-    return iter.hasAll(pt.tags, ...) and true or false
+local function hasAllTags(pt, tags)
+    return iter.hasAll(pt.tags, tags) and true or false
 end
 Snap.hasAllTags = hasAllTags
-local function hasAnyTag(pt, ...)
-    return iter.hasAny(pt.tags, ...) and true or false
+local function hasAnyTag(pt, tags)
+    return iter.hasAny(pt.tags, tags) and true or false
 end
 Snap.hasAnyTag = hasAnyTag
 
@@ -74,7 +75,7 @@ function Snap.get(params)
         local r = {}
         for i = 1, count do
             params.point = iter.find(pts, function(p)
-                return iter.hasAll(p.tags, params.tag, 'n' .. tostring(i))
+                return hasAllTags(p, {params.tag, 'n'..i})
             end)
             table.insert(r, Snap(params))
         end

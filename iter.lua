@@ -37,8 +37,8 @@ function iter.all(t, f)
     return c == #t
 end
 
-function iter.hasAll(t, ...)
-    return iter.all({...}, function(x) return iter.has(t, x) end)
+function iter.hasAll(t, list)
+    return iter.all(list, function(x) return iter.has(t, x) end)
 end
 
 function iter.any(t, f)
@@ -48,8 +48,8 @@ function iter.any(t, f)
     return false
 end
 
-function iter.hasAny(t, ...)
-    return iter.any({...}, function(x) return iter.has(t, x) end)
+function iter.hasAny(t, list)
+    return iter.any(list, function(x) return iter.has(t, x) end)
 end
 
 return iter
