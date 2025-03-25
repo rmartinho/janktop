@@ -4,8 +4,10 @@ return function(load)
             UI.setAttribute('setupPanel', 'active', 'false')
         else
             difficulty = 1
+            local difficultyNames = {'Easy', 'Medium', 'Hard', 'Expert'}
             function onDifficultyChanged(player, value)
-                print(value)
+                UI.setAttribute('difficultyText', 'text', 'Difficulty: ' ..
+                                    difficultyNames[tonumber(value)])
                 difficulty = tonumber(value)
             end
 
