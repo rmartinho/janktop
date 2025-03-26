@@ -48,7 +48,7 @@ function ObjExt:snapTo(snap, offset)
     if offset then
         async(function()
             async.wait.rest(self)
-            self.setLock(true)
+            self.setLock(locked)
         end)
     end
 end
