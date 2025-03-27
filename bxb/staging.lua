@@ -21,8 +21,8 @@ return function(load)
                     ['Van'] = Pattern.columns {
                         corner = Snap.get{base = board, tag = 'Van'}[1],
                         height = 2,
-                        spreadH = 2.38,
-                        spreadV = -1
+                        spreadH = 2.5,
+                        spreadV = -1.1
                     }
                 }
             }
