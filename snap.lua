@@ -34,7 +34,7 @@ function Snap:new(params)
                 type = 'ScriptingTrigger',
                 position = self.position,
                 rotation = self.rotation or {0, 0, 0},
-                scale = {0.1, 1, 0.1}
+                scale = {0.1, 3, 0.1}
             }
             for _, tag in pairs(params.point.tags) do
                 self.zone.addTag(tag)

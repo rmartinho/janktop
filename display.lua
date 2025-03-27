@@ -65,10 +65,12 @@ function Display:deal1()
         async.wait.rest(card)
         if self.locks then card.setLock(true) end
         if self.onTopChanged then self:onTopChanged() end
+        return card
     else
         draw.flip()
         async.wait.rest(draw)
         if self.locks then draw.setLock(true) end
+        return draw
     end
 end
 

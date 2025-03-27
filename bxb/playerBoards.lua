@@ -57,7 +57,8 @@ return function(load)
                                 }[1],
                                 height = 1
                             }
-                        }
+                        },
+                        sticky = true
                     }
                     async.fork(function()
                         layout:put(getObjectsWithAllTags({'Bloc', faction}))

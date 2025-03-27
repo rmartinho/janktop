@@ -11,7 +11,12 @@ function Layout.of(zone) return Layout.zones[zone.guid] end
 
 function Layout.onDrop(p, o)
     local dropped = {}
-    for _, z in pairs(o.getZones()) do
+    local zones = o.getZones()
+    if #zones == 0 and o.hasTag('Return') then
+        local z = Obj.get {guid = o.memo}
+        table.insert(zones, z)
+    end
+    for _, z in pairs(zones) do
         local l = Layout.of(z)
         if l then
             l:drop(p, o)
@@ -26,11 +31,12 @@ end
 function Layout.onLeave(z, o)
     local l = Layout.of(z)
     if l then
+        if o.hasTag('Return') and l.sticky then o.memo = z.guid end
         if l.leaving then Wait.stop(l.leaving) end
         l.leaving = Wait.frames(function()
             l.leaving = nil
             l:layout(true)
-        end, 60)
+        end, 30)
     end
 end
 
@@ -62,6 +68,7 @@ function Layout:new(params)
     Layout.zones[params.zone.guid] = self
     self.patterns = params.patterns
     self.pattern = params.pattern
+    self.sticky = params.sticky == true
 
     self.dropped = {}
 end
@@ -80,6 +87,7 @@ end
 function Layout:layout(force)
     local dropped = self.dropped
     if #dropped == 0 and not force then return end
+    if self.leaving then Wait.stop(self.leaving) end
     self.dropped = {}
 
     if self.patterns then

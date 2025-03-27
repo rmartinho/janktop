@@ -16,7 +16,8 @@ return function(load)
                     width = 8,
                     spreadH = 2.6,
                     spreadV = 1.76
-                }
+                },
+                sticky = true
             }
             async.fork(function()
                 layout:put(getObjectsWithTag('Barricade'))

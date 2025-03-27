@@ -24,7 +24,8 @@ return function(load)
                         spreadH = 2.5,
                         spreadV = -1.1
                     }
-                }
+                },
+                sticky = true
             }
             async.fork(function()
                 layout:put(getObjectsWithTag('Squad'))
