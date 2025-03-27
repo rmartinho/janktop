@@ -23,6 +23,17 @@ function Layout.onDrop(p, o)
     end
 end
 
+function Layout.onLeave(z, o)
+    local l = Layout.of(z)
+    if l then
+        if l.leaving then Wait.stop(l.leaving) end
+        l.leaving = Wait.frames(function()
+            l.leaving = nil
+            l:layout(true)
+        end, 60)
+    end
+end
+
 local function layoutWith(self, dropped, pattern, tag)
     local set = {}
     local objects = {}
@@ -66,9 +77,9 @@ function Layout:put(objects)
     self:layout()
 end
 
-function Layout:layout()
+function Layout:layout(force)
     local dropped = self.dropped
-    if #dropped == 0 then return end
+    if #dropped == 0 and not force then return end
     self.dropped = {}
 
     if self.patterns then
