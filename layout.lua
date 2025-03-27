@@ -59,7 +59,9 @@ function Layout:drop(p, o) table.insert(self.dropped, {object = o, player = p}) 
 
 function Layout:put(objects)
     for _, o in pairs(objects) do
-        table.insert(self.dropped, {object = o, player = nil})
+        if o.type ~= 'Scripting' then
+            table.insert(self.dropped, {object = o, player = nil})
+        end
     end
     self:layout()
 end

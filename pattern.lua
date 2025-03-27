@@ -128,60 +128,60 @@ end
 --   return pts
 -- end
 
--- Pattern.rows = Pattern:extend()
+Pattern.rows = Pattern:extend()
 
--- function Pattern.rows:new(params)
---   self.corner = params.corner
---   self.width = params.width
---   self.spreadH = params.spread or params.spreadH
---   self.spreadV = params.spread or params.spreadV
--- end
+function Pattern.rows:new(params)
+  self.corner = params.corner
+  self.width = params.width
+  self.spreadH = params.spread or params.spreadH
+  self.spreadV = params.spread or params.spreadV
+end
 
--- function Pattern.rows:points(n)
---   local pts = {}
---   local pt = Vector(self.corner.position)
---   local r = 0
---   local c = 0
---   for i=1,n do
---     table.insert(pts, {
---       position = pt + Vector(c * self.spreadH, 0, r * self.spreadV),
---       rotation = self.point.rotation
---     })
---     c = c + 1
---     if c == self.width then
---       r = r + 1
---       c = 0
---     end
---   end
---   return pts
--- end
+function Pattern.rows:points(n)
+  local pts = {}
+  local pt = Vector(self.corner.position)
+  local r = 0
+  local c = 0
+  for i=1,n do
+    table.insert(pts, {
+      position = pt + Vector(c * self.spreadH, 0, r * self.spreadV),
+      rotation = self.corner.rotation
+    })
+    c = c + 1
+    if c == self.width then
+      r = r + 1
+      c = 0
+    end
+  end
+  return pts
+end
 
--- Pattern.columns = Pattern:extend()
+Pattern.columns = Pattern:extend()
 
--- function Pattern.columns :new(params)
---   self.corner = params.corner
---   self.height = params.height
---   self.spreadH = params.spread or params.spreadH
---   self.spreadV = params.spread or params.spreadV
--- end
+function Pattern.columns :new(params)
+  self.corner = params.corner
+  self.height = params.height
+  self.spreadH = params.spread or params.spreadH
+  self.spreadV = params.spread or params.spreadV
+end
 
--- function Pattern.colunns:points(n)
---   local pts = {}
---   local pt = Vector(self.corner.position)
---   local r = 0
---   local c = 0
---   for i=1,n do
---     table.insert(pts, {
---       position = pt + Vector(c * self.spreadH, 0, r * self.spreadV),
---       rotation = self.point.rotation
---     })
---     r = r + 1
---     if r == self.height then
---       r = 0
---       c = c + 1
---     end
---   end
---   return pts
--- end
+function Pattern.columns:points(n)
+  local pts = {}
+  local pt = Vector(self.corner.position)
+  local r = 0
+  local c = 0
+  for i=1,n do
+    table.insert(pts, {
+      position = pt + Vector(c * self.spreadH, 0, r * self.spreadV),
+      rotation = self.corner.rotation
+    })
+    r = r + 1
+    if r == self.height then
+      r = 0
+      c = c + 1
+    end
+  end
+  return pts
+end
 
 return Pattern
