@@ -1,6 +1,6 @@
-local Obj = require("tts/obj")
-local Track = require("tts/track")
-local Tracker = require("tts/tracker")
+local Obj = require 'tts/obj'
+local Track = require 'tts/track'
+local Tracker = require 'tts/tracker'
 
 return function(load)
     load.morale = function(data)

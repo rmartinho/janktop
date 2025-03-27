@@ -23,37 +23,59 @@ function Layout.onDrop(p, o)
     end
 end
 
+local function layoutWith(self, dropped, pattern, tag)
+    local set = {}
+    local objects = {}
+    for _, o in pairs(self.zone.getObjects()) do
+        if not tag or o.hasTag(tag) then
+            table.insert(objects, o)
+            set[o.guid] = true
+        end
+    end
+    for _, o in pairs(dropped) do
+        if not tag or o.object.hasTag(tag) then
+            if not set[o.object.guid] then
+                table.insert(objects, o.object)
+                set[o.object.guid] = true
+            end
+        end
+    end
+
+    local points = pattern:points(#objects)
+    local max = #points > #objects and #objects or #points
+    for i = 1, max do Obj.use(objects[i]):snapTo(points[i], {0, 1, 0}) end
+end
+
 function Layout:new(params)
     self.zone = params.zone
     Layout.zones[params.zone.guid] = self
-    self.pattern = params.pattern or Pattern.none
+    self.patterns = params.patterns
+    self.pattern = params.pattern
 
     self.dropped = {}
 end
 
 function Layout:drop(p, o) table.insert(self.dropped, {object = o, player = p}) end
 
+function Layout:put(objects)
+    for _, o in pairs(objects) do
+        table.insert(self.dropped, {object = o, player = nil})
+    end
+    self:layout()
+end
+
 function Layout:layout()
     local dropped = self.dropped
     if #dropped == 0 then return end
     self.dropped = {}
 
-    local set = {}
-    local objects = {}
-    for _, o in pairs(self.zone.getObjects()) do
-        table.insert(objects, o)
-        set[o.guid] = true
-    end
-    for _, o in pairs(dropped) do
-        if not set[o.object.guid] then
-            table.insert(objects, o.object)
-            set[o.object.guid] = true
+    if self.patterns then
+        for t, p in pairs(self.patterns) do
+            layoutWith(self, dropped, p, t)
         end
+    else
+        layoutWith(self, dropped, self.pattern)
     end
-
-    local points = self.pattern:points(#objects)
-    local max = #points > #objects and #objects or #points
-    for i = 1, max do Obj.use(objects[i]):snapTo(points[i], {0, 1, 0}) end
 end
 
 return Layout

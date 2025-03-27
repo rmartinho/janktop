@@ -1,4 +1,4 @@
-local Turns = require("tts/turns")
+local Turns = require 'tts/turns'
 
 return function(load)
     load.turns = function(data)

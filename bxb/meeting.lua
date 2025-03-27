@@ -18,6 +18,10 @@ return function(load)
             }
         end
 
+        function meeting:resolve()
+            -- TODO
+        end
+
         return meeting
     end
 end

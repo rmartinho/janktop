@@ -1,7 +1,7 @@
-local Obj = require("tts/obj")
-local Track = require("tts/track")
-local Tracker = require("tts/tracker")
-local async = require("tts/async")
+local Obj = require 'tts/obj'
+local Track = require 'tts/track'
+local Tracker = require 'tts/tracker'
+local async = require 'tts/async'
 
 return function(load)
   load.countdown = function(data)
