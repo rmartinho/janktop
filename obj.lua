@@ -44,7 +44,13 @@ function ObjExt:snapTo(snap, offset)
     local locked = self.getLock()
     if offset then self.setLock(false) end
     self.setPositionSmooth(pos)
-    if snap.rotation then self.setRotationSmooth(snap.rotation) end
+    if snap.rotation then
+        local rotation = Vector(snap.rotation)
+        if not snap.allowFlip then
+            rotation:setAt('z', self.getRotation().z)
+        end
+        self.setRotationSmooth(rotation)
+    end
     if offset then
         async(function()
             async.wait.rest(self)

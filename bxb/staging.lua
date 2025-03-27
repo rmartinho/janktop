@@ -13,13 +13,19 @@ return function(load)
                 zone = Obj.get {tag = 'Staging Area'},
                 patterns = {
                     ['Squad'] = Pattern.columns {
-                        corner = Snap.get{base = board, tag = 'Squad'}[1],
+                        corner = Snap.get{
+                            base = board,
+                            tags = {'Squad', 'Staging Area'}
+                        }[1],
                         height = 3,
                         spreadH = -0.6,
                         spreadV = 0.6
                     },
                     ['Van'] = Pattern.columns {
-                        corner = Snap.get{base = board, tag = 'Van'}[1],
+                        corner = Snap.get{
+                            base = board,
+                            tags = {'Van', 'Staging Area'}
+                        }[1],
                         height = 2,
                         spreadH = 2.5,
                         spreadV = -1.1

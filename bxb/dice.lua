@@ -15,8 +15,7 @@ return function(load)
                     corner = Snap.get{base = board, tag = 'Die'}[1],
                     height = 5,
                     spread = -1.7
-                }
-
+                }, preserveRotationValue = true
             }
             async.fork(function()
                 layout:put(getObjectsWithTag('Die'))

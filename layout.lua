@@ -60,7 +60,14 @@ local function layoutWith(self, dropped, pattern, tag)
 
     local points = pattern:points(#objects)
     local max = #points > #objects and #objects or #points
-    for i = 1, max do Obj.use(objects[i]):snapTo(points[i], {0, 1, 0}) end
+    for i = 1, max do
+        local o = Obj.use(objects[i])
+        if self.preserveRotationValue then
+            local value = o.getValue()
+            points[i].rotation = o.getRotationValues()[value].rotation
+        end
+        o:snapTo(points[i], {0, 1, 0})
+    end
 end
 
 function Layout:new(params)
@@ -69,7 +76,7 @@ function Layout:new(params)
     self.patterns = params.patterns
     self.pattern = params.pattern
     self.sticky = params.sticky == true
-
+    self.preserveRotationValue = params.preserveRotationValue == true
     self.dropped = {}
 end
 

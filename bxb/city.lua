@@ -1,12 +1,20 @@
 local Object = require 'tts/classic'
 local Obj = require 'tts/obj'
 local Snap = require 'tts/snap'
+local Layout = require 'tts/layout'
+local Pattern = require 'tts/pattern'
 local iter = require 'tts/iter'
 local async = require 'tts/async'
 
-local dropOffset = Vector(0, 0.5, 0)
+local dropOffset = Vector(0, 0.2, 0)
 
-function layDistricts(deck, tag, rotate)
+local districtIndices = {
+    A = {1, 4, 6, 9, 13, 17, 20, 22, 25},
+    B = {2, 5, 8, 11, 14, 16, 19, 23},
+    C = {3, 7, 10, 12, 15, 18, 21, 24}
+}
+
+function layDistricts(city, deck, tag, rotate)
     async(function()
         local snaps = tag and
                           iter.filter(city.snaps,
@@ -40,6 +48,47 @@ function layDistricts(deck, tag, rotate)
         for _, c in pairs(moved) do
             async.wait.rest(c)
             c.setLock(true)
+            if rotate then
+                local zone = spawnObject {
+                    type = 'ScriptingTrigger',
+                    position = c.getPosition(),
+                    scale = {6, 6, 6}
+                }
+                local patterns = {}
+                local blocSnap = Snap.get{base = c, tag = 'Bloc'}[1]
+                if blocSnap then
+                    patterns.Bloc = Pattern.squares {
+                        center = blocSnap,
+                        spread = 0.6,
+                        rotation = c.getRotation().y
+                    }
+                end
+                local squadSnap = Snap.get{base = c, tag = 'Squad'}[1]
+                if squadSnap then
+                    patterns.Squad = Pattern.squares {
+                        center = squadSnap,
+                        spread = 0.6,
+                        rotation = c.getRotation().y
+                    }
+                end
+                local vanSnap = Snap.get {base = c, tag = 'Van'}
+                if #vanSnap > 0 then
+                    patterns.Van = Pattern.fromSnaps(vanSnap)
+                end
+                local occupationSnap = Snap.get {base = c, tag = 'Occupation'}
+                if #occupationSnap > 0 then
+                    patterns.Occupation = Pattern.fromSnaps(occupationSnap)
+                end
+                local graffitiSnap = Snap.get {
+                    base = c,
+                    tag = 'Graffiti',
+                    allowFlip = false
+                }
+                if #graffitiSnap > 0 then
+                    patterns.Graffiti = Pattern.fromSnaps(graffitiSnap)
+                end
+                local layout = Layout {zone = zone, patterns = patterns}
+            end
         end
     end)
 end
@@ -67,7 +116,7 @@ function City:setup()
     async(function()
         local liberation = Obj.get {tag = 'Liberation'}
         liberation.shuffle()
-        layDistricts(liberation)
+        layDistricts(self, liberation)
         async.fork(function()
             async(function()
                 liberation:snapTo({position = {-40, 30, 0}})
@@ -77,13 +126,13 @@ function City:setup()
 
             local districtsA = Obj.get {tags = {'District', 'A'}}
             districtsA.shuffle()
-            layDistricts(districtsA, 'A', true)
+            layDistricts(self, districtsA, 'A', true)
             local districtsB = Obj.get {tags = {'District', 'B'}}
             districtsB.shuffle()
-            layDistricts(districtsB, 'B', true)
+            layDistricts(self, districtsB, 'B', true)
             local districtsC = Obj.get {tags = {'District', 'C'}}
             districtsC.shuffle()
-            layDistricts(districtsC, 'C', true)
+            layDistricts(self, districtsC, 'C', true)
         end)
         async.pause()
     end)

@@ -26,6 +26,7 @@ function Snap:new(params)
                 self.rotation = params.point.rotation
             end
         end
+        self.allowFlip = params.allowFlip ~= false
 
         self.tags = params.point.tags
 
