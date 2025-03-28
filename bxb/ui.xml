@@ -1,0 +1,52 @@
+<Defaults>
+    <Text color="White" fontSize="14" textAlignment="MiddleLeft" />
+    <ToggleButton textColor="White" fontSize="16" minHeight="30" preferredHeight="30"
+        colors="#aaaaaa|#aaaaaa|#808080|#606060" selectedBackgroundColor="#808080"
+        deselectedBackgroundColor="#aaaaaa" />
+    <Button textColor="White" fontSize="16" preferredHeight="30"
+        colors="#aaaaaa|#aaaaaa|#808080|#606060" />
+    <Slider preferredHeight="30" />
+</Defaults>
+
+<Panel
+    id="setupPanel"
+    width="160" height="230"
+    offsetXY="64 0"
+    color="#80808080"
+    rectAlignment="UpperLeft"
+    allowDragging="true"
+    returnToOriginalPositionWhenReleased="false"
+>
+    <VerticalLayout padding="8" spacing="8" flexibleHeight="true" childForceExpandHeight="false">
+        <Button
+            id="setupButton"
+            onClick="Global/setup"
+            preferredHeight="50"
+        >Setup</Button>
+        <Text id="difficultyText">Difficulty: Easy</Text>
+        <Slider
+            id="difficultySlider"
+            onValueChanged="Global/onDifficultyChanged"
+            minValue="1"
+            maxValue="4"
+            wholeNumbers="true"
+            value="1" />
+        <ToggleGroup id="agendaToggle">
+            <VerticalLayout>
+                <ToggleButton
+                    id="cooperationToggle"
+                    onValueChanged="Global/onSetAgendaCooperation"
+                >Cooperation</ToggleButton>
+                <ToggleButton
+                    id="standardToggle"
+                    isOn="true"
+                    onValueChanged="Global/onSetAgendaStandard"
+                >Standard</ToggleButton>
+                <ToggleButton
+                    id="conflictToggle"
+                    onValueChanged="Global/onSetAgendaConflict"
+                >Conflict</ToggleButton>
+            </VerticalLayout>
+        </ToggleGroup>
+    </VerticalLayout>
+</Panel>
