@@ -1,0 +1,18 @@
+<Panel
+    id="readyPanel"
+    width="160" height="60"
+    offsetXY="0 0"
+    color="#80808080"
+    rectAlignment="MiddleRight"
+    allowDragging="true"
+    returnToOriginalPositionWhenReleased="false"
+    active="false"
+>
+    <VerticalLayout padding="8" spacing="8" flexibleHeight="true" childForceExpandHeight="false">
+        <Button
+            id="readyButton"
+            onClick="Global/Ready"
+            preferredHeight="50"
+        >Ready</Button>
+    </VerticalLayout>
+</Panel>

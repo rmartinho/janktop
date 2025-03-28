@@ -1,6 +1,7 @@
 local Obj = require 'tts/obj'
 local Layout = require 'tts/layout'
 local async = require 'tts/async'
+Ready = require 'tts/ready'
 
 local saver = {}
 local loader = {}
@@ -82,6 +83,9 @@ function setup()
         async.fork(function() playerBoards:setup() end)
         async.wait(120)
         broadcastToAll('You may now place Faction Start occupations')
+        Ready.waitAll()
+        ops:resolve()
+        phase:advance()
     end)
 end
 

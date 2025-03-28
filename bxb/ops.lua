@@ -37,6 +37,11 @@ return function(load)
             end)
         end
 
+        function ops:resolve()
+            self:deal()
+            -- TODO resolve
+        end
+
         return ops
     end
 end

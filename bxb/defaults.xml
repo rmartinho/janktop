@@ -1,0 +1,9 @@
+<Defaults>
+    <Text color="White" fontSize="14" textAlignment="MiddleLeft" />
+    <ToggleButton textColor="White" fontSize="16" minHeight="30" preferredHeight="30"
+        colors="#aaaaaa|#aaaaaa|#808080|#606060" selectedBackgroundColor="#808080"
+        deselectedBackgroundColor="#aaaaaa" />
+    <Button textColor="White" fontSize="16" preferredHeight="30"
+        colors="#aaaaaa|#aaaaaa|#808080|#606060" />
+    <Slider preferredHeight="30" />
+</Defaults>
