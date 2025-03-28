@@ -29,6 +29,7 @@ function Layout.onDrop(p, o)
 end
 
 function Layout.onLeave(z, o)
+    if Layout.inserting[o] then return end
     local l = Layout.of(z)
     if l then
         if o.hasTag('Return') and l.sticky then o.memo = z.guid end
@@ -67,6 +68,8 @@ local function layoutWith(self, dropped, pattern, tag)
             points[i].rotation = o.getRotationValues()[value].rotation
         end
         o:snapTo(points[i], {0, 1, 0})
+        Wait.condition(function() Layout.inserting[o] = nil end,
+                       function() return o.resting end)
     end
 end
 
@@ -82,9 +85,12 @@ end
 
 function Layout:drop(p, o) table.insert(self.dropped, {object = o, player = p}) end
 
-function Layout:put(objects)
+Layout.inserting = {}
+
+function Layout:insert(objects)
     for _, o in pairs(objects) do
         if o.type ~= 'Scripting' then
+            Layout.inserting[o] = true
             table.insert(self.dropped, {object = o, player = nil})
         end
     end

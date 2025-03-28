@@ -61,9 +61,9 @@ return function(load)
                         sticky = true
                     }
                     async.fork(function()
-                        layout:put(getObjectsWithAllTags({'Bloc', faction}))
-                        layout:put(getObjectsWithAllTags({'Flag', faction}))
-                        layout:put(
+                        layout:insert(getObjectsWithAllTags({'Bloc', faction}))
+                        layout:insert(getObjectsWithAllTags({'Flag', faction}))
+                        layout:insert(
                             getObjectsWithAllTags({'Occupation', faction}))
                     end)
                 end)

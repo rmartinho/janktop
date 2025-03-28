@@ -34,8 +34,8 @@ return function(load)
                 sticky = true
             }
             async.fork(function()
-                layout:put(getObjectsWithTag('Squad'))
-                layout:put(getObjectsWithTag('Van'))
+                layout:insert(getObjectsWithTag('Squad'))
+                layout:insert(getObjectsWithTag('Van'))
             end)
         end
 

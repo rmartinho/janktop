@@ -18,7 +18,7 @@ return function(load)
                 }, preserveRotationValue = true
             }
             async.fork(function()
-                layout:put(getObjectsWithTag('Die'))
+                layout:insert(getObjectsWithTag('Die'))
             end)
         end
 

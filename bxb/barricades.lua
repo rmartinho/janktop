@@ -23,7 +23,7 @@ return function(load)
                 sticky = true
             }
             async.fork(function()
-                layout:put(getObjectsWithTag('Barricade'))
+                layout:insert(getObjectsWithTag('Barricade'))
             end)
 
             Snap.get {base = board, tags = {'Barricade', 'Spot'}, zoned = true}
