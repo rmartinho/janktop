@@ -22,6 +22,7 @@ return function(load)
               description = remain .. ' night' .. (remain == 1 and '' or 's') ..
                                 ' remaining'
           end
+          broadcastToAll(description)
           self.marker.setDescription(description)
       end
   

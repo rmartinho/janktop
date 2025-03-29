@@ -20,8 +20,8 @@ return function(load)
         function morale:steps() return steps[self:index()] end
 
         function morale:onStep(i)
-            broadcastToAll('Police Morale is now ' .. titles[i] .. ' (' ..
-                               steps[i] .. ')')
+            broadcastToAll(
+                'Police Morale is ' .. titles[i] .. ' (' .. steps[i] .. ')')
             self.marker.setDescription('Police Morale: ' .. titles[i] .. '\n' ..
                                            'Ops cards per turn: ' .. steps[i] ..
                                            '\n' .. 'Countdown steps per round: ' ..

@@ -1,3 +1,4 @@
+local Obj = require 'tts/obj'
 local Discard = require 'tts/discard'
 local iter = require 'tts/iter'
 local async = require 'tts/async'
@@ -63,10 +64,6 @@ return function(load)
                 Hard = difficulty == 3,
                 Expert = difficulty == 4
             }
-            local difficultyNames = {'Easy', 'Medium', 'Hard', 'Expert'}
-            broadcastToAll('Police difficulty set to ' ..
-                               difficultyNames[difficulty] ..
-                               ' (Heavy Reinforcements: ' .. difficulty .. ')')
 
             Obj.get {tags = {'Police Ops', 'Deck'}}:removeObjectsIf(
                 self.discard.position, function(card)
@@ -75,14 +72,16 @@ return function(load)
                         return expectedTag[t]
                     end)
                 end)
-            async(function() Discard.setup(self) end)
+            Discard.setup(self)
         end
 
         function ops:onTopChanged()
             local card = self:topOfDiscard()
-            broadcastToAll('Resolving Police Ops: ' .. card.getName())
-            local f = cardActions[card.getName()]
-            f()
+            if card then
+                broadcastToAll('Resolving Police Ops: ' .. card.getName())
+                local f = cardActions[card.getName()]
+                f()
+            end
         end
 
         return ops

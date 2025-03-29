@@ -97,19 +97,23 @@ function Discard:discardPile() return Obj.use(self.discard.zone.getObjects()[1])
 
 function Discard:topOfDraw()
     local deck = self:drawPile()
-    if deck.type == 'Card' then
-        return deck
-    else
-        return deck.getObjects()[1]
+    if deck then
+        if deck.type == 'Card' then
+            return deck
+        else
+            return deck.getObjects()[1]
+        end
     end
 end
 
 function Discard:topOfDiscard()
     local deck = self:discardPile()
-    if deck.type == 'Card' then
-        return deck
-    else
-        return deck.getObjects()[1]
+    if deck then
+        if deck.type == 'Card' then
+            return deck
+        else
+            return deck.getObjects()[1]
+        end
     end
 end
 
