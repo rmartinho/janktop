@@ -76,6 +76,7 @@ function Discard:deal1()
             self:unlock()
             async.wait.rest(draw)
             self:lock()
+            if self.onTopChanged then self:onTopChanged() end
         else
             local card = draw.takeObject {
                 position = Vector(dropPos) + dropOffset,
