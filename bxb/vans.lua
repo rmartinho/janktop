@@ -10,7 +10,6 @@ return function(load)
 
         function vans:setup()
             local staging = Obj.get {tag = 'Staging Area'}
-
             local objects = staging.getObjects()
             local vans = iter.filter(objects,
                                      function(o)

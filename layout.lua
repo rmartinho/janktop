@@ -9,6 +9,15 @@ Layout.zones = {}
 
 function Layout.of(zone) return Layout.zones[zone.guid] end
 
+function Layout.remove(o)
+    local z = Obj.get {guid = o.memo}
+    local l = Layout.of(z)
+    if l then
+        l:drop(p, o)
+        Wait.frames(function() l:layout() end, 1)
+    end
+end
+
 function Layout.onDrop(p, o)
     local dropped = {}
     local zones = o.getZones()
@@ -29,7 +38,7 @@ function Layout.onDrop(p, o)
 end
 
 function Layout.onLeave(z, o)
-    if Layout.inserting[o] then return end
+    if Layout.inserting[o.guid] then return end
     local l = Layout.of(z)
     if l then
         if o.hasTag('Return') and l.sticky then o.memo = z.guid end
@@ -68,7 +77,7 @@ local function layoutWith(self, dropped, pattern, tag)
             points[i].rotation = o.getRotationValues()[value].rotation
         end
         o:snapTo(points[i], {0, 1, 0})
-        Wait.condition(function() Layout.inserting[o] = nil end,
+        Wait.condition(function() Layout.inserting[o.guid] = nil end,
                        function() return o.resting end)
     end
 end
@@ -90,7 +99,7 @@ Layout.inserting = {}
 function Layout:insert(objects)
     for _, o in pairs(objects) do
         if o.type ~= 'Scripting' then
-            Layout.inserting[o] = true
+            Layout.inserting[o.guid] = true
             table.insert(self.dropped, {object = o, player = nil})
         end
     end

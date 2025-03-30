@@ -18,11 +18,12 @@ return function(load)
         function reaction:onTopChanged()
             local deck = self:drawPile()
             local top = self:topOfDraw()
-            local open = string.find(top.description, 'Metro Open')
-            broadcastToAll('The Metro is ' .. (open and 'open' or 'in lockdown'))
-            if deck then
-                deck.setDescription(top.description)
-            end
+            self.metro = string.find(top.description, 'Metro Open')
+            local _, e = string.find(top.description, 'Priority: ')
+            self.priority = string.sub(top.description, e + 1, e + 1)
+            broadcastToAll('The Metro is ' ..
+                               (self.metro and 'open' or 'in lockdown'))
+            if deck then deck.setDescription(top.description) end
         end
 
         return reaction
