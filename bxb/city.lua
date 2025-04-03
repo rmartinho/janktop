@@ -10,7 +10,7 @@ local async = require 'tts/async'
 local dropOffset = Vector(0, 0.3, 0)
 
 local terrainProps = {
-    ['Highway'] = {priority = -1, difficulty = 100, adjacency = {0, 0, 0, 0}},
+    ['Highway'] = {priority = -1, difficulty = 100, highway = true},
     ['1 - Commercial (M)'] = {
         priority = 1,
         difficulty = 3,
@@ -168,7 +168,6 @@ function layDistricts(city, deck, tag)
             table.insert(moved, move)
             if tag then
                 local ix = table.remove(districtIndices[tag])
-                print(ix, rot)
                 city.districts[ix] = {
                     index = ix,
                     terrain = card,

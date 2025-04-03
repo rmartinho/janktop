@@ -10,6 +10,35 @@ local function doPoliceOps()
     end)
 end
 
+local function doDiceRoll()
+    return async(function()
+        local toForm = {}
+        for _, f in pairs(factions) do
+            local starter = Obj {tags = {'Faction Start', f}}
+            local zone = starter.getZones()[1]
+            local layout = Layout.of(zone)
+            local blocZone = Obj {guid = starter.memo}
+            local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
+            if #blocs > 0 and zone.guid ~= starter.memo then
+                table.insert(toForm, async(function()
+                    local bloc = table.remove(blocs)
+                    layout:insert(bloc):await()
+                end))
+            end
+        end
+        async.par(toForm):await()
+        dice:roll():await()
+        return true
+    end)
+end
+
+local function doCountdown()
+    return async(function()
+        countdown:advance()
+        return true
+    end)
+end
+
 return function(load)
     load.phase = function(data)
         local phases = {

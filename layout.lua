@@ -1,5 +1,6 @@
 local Object = require 'tts/classic'
 local Obj = require 'tts/obj'
+local iter = require 'tts/iter'
 local async = require 'tts/async'
 
 local Layout = Object:extend('Layout')
@@ -42,21 +43,32 @@ function Layout.onLeave(z, o)
     end
 end
 
-local function layoutWith(self, dropped, pattern, tag)
+local function layoutWith(self, dropped, pattern, tag, tags)
     local set = {}
     local objects = {}
-    for _, o in pairs(self.zone.getObjects()) do
-        if not tag or o.hasTag(tag) then
-            table.insert(objects, o)
-            set[o.guid] = true
+
+    local function checkTags(o)
+        if tag and #tag == 0 then
+            if not iter.any(tags, function(t)
+                return o.hasTag(t)
+            end) then
+                table.insert(objects, o)
+                set[o.guid] = true
+            end
+        else
+            if not tag or o.hasTag(tag) then
+                table.insert(objects, o)
+                set[o.guid] = true
+            end
         end
     end
+
+    for _, o in pairs(self.zone.getObjects()) do
+        checkTags(o)
+    end
     for _, o in pairs(dropped) do
-        if not tag or o.object.hasTag(tag) then
-            if not set[o.object.guid] then
-                table.insert(objects, o.object)
-                set[o.object.guid] = true
-            end
+        if not set[o.object.guid] then
+            checkTags(o.object)
         end
     end
 
@@ -121,8 +133,12 @@ function Layout:layout(force)
 
     if self.patterns then
         local layouts = {}
+        local tags = {}
+        for t, _ in pairs(self.patterns) do
+            if #t > 0 then table.insert(tags, t) end
+        end
         for t, p in pairs(self.patterns) do
-            table.insert(layouts, layoutWith(self, dropped, p, t))
+            table.insert(layouts, layoutWith(self, dropped, p, t, tags))
         end
         return async.par(layouts)
     else

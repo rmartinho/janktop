@@ -6,6 +6,10 @@ function iter.filter(t, f)
     return r
 end
 
+function iter.filterTag(os, tag)
+    return iter.filter(os, function(o) return o.hasTag(tag) end)
+end
+
 function iter.count(t, f)
     local c = 0
     for _, v in ipairs(t) do if f(v) then c = c + 1 end end
@@ -13,6 +17,9 @@ function iter.count(t, f)
 end
 
 function iter.find(t, f) for _, v in ipairs(t) do if f(v) then return v end end end
+function iter.findTag(os, tag)
+    return iter.find(os, function(o) return o.hasTag(tag) end)
+end
 
 function iter.map(t, f)
     local r = {}
