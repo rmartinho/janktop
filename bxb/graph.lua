@@ -7,15 +7,16 @@ function buildGraph(city)
     for _, district in ipairs(city.districts) do
         -- TODO highways but also graph is all fucked
         local baseAdj = district.props.adjacency
+        print(_, JSON.encode(baseAdj), district.rot)
         local deltas = {
-            {0, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, 0}
+            {1, 0}, {0, 1}, {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}
         }
         local adj = {}
         local x = (district.index - 1) % 5 + 1
         local y = math.ceil(district.index / 5)
         for i = 1, 4 do
             if baseAdj[i] == 1 then
-                local delta = deltas[4 - district.rotN + i]
+                local delta = deltas[district.rot + i]
                 local pos = {x + delta[1], y + delta[2]}
                 local ix = (pos[2] - 1) * 5 + pos[1]
                 if pos[1] <= 5 and pos[1] >= 1 and pos[2] <= 5 and pos[2] >= 1 then
@@ -27,8 +28,14 @@ function buildGraph(city)
     end
     for i, adj in pairs(adjs) do
         for j, _ in pairs(adj) do
-            if not adjs[j] or not adjs[j][i] then adjs[i][j] = nil end
+            if not adjs[j] or not adjs[j][i] then
+                print('removing ', i, '->', j)
+                adjs[i][j] = nil
+            end
         end
+    end
+    for i, adj in pairs(adjs) do
+        for j, ok in pairs(adj) do if ok then print(i, ' -> ', j) end end
     end
     return adjs
 end

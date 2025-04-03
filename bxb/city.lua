@@ -15,7 +15,7 @@ local terrainProps = {
         priority = 1,
         difficulty = 3,
         metro = true,
-        adjacency = {1, 0, 1, 1}
+        adjacency = {0, 1, 1, 1}
     },
     ['2 - Commercial'] = {
         priority = 2,
@@ -31,25 +31,25 @@ local terrainProps = {
         priority = 4,
         difficulty = 4,
         metro = true,
-        adjacency = {1, 0, 1, 1}
+        adjacency = {0, 1, 1, 1}
     },
     ['5 - Workers - Garment Sweatshop (M)'] = {
         priority = 5,
         difficulty = 4,
         metro = true,
-        adjacency = {1, 0, 1, 1}
+        adjacency = {0, 1, 1, 1}
     },
     ['6 - Students - Underfunded High School (M)'] = {
         priority = 6,
         difficulty = 4,
         metro = true,
-        adjacency = {1, 0, 1, 1}
+        adjacency = {0, 1, 1, 1}
     },
     ['7 - Neighbors - Polluted Slum (M)'] = {
         priority = 7,
         difficulty = 4,
         metro = true,
-        adjacency = {1, 0, 1, 1}
+        adjacency = {0, 1, 1, 1}
     },
     ['8 - Neighbors - The Projects'] = {
         priority = 8,
@@ -129,7 +129,7 @@ local terrainProps = {
     }
 }
 
-function layDistricts(city, deck, tag, rotate)
+function layDistricts(city, deck, tag)
     local districtIndices = {
         A = {25, 22, 20, 17, 13, 9, 6, 4, 1},
         B = {23, 19, 16, 14, 11, 8, 5, 2},
@@ -142,22 +142,23 @@ function layDistricts(city, deck, tag, rotate)
                 return s:hasTag(tag)
             end) or city.snaps
         local rotation = nil
-        local rotN = nil
         local moved = {}
         local remainder = nil
+        local districts = {}
         for _, s in pairs(snaps) do
-            if rotate then
-                rotN = math.random(0, 3)
-                rotation = {0, rotN * 90, 180}
+            local rot
+            local card
+            if tag then
+                rot = math.random(0, 3)
+                rotation = {0, (rot + 2) * 90, 180}
             end
             local move
             if remainder then
-                move = Obj.use(remainder):snapTo({
-                    position = s.position,
-                    rotation = rotation
-                }, dropOffset)
+                card = Obj.use(remainder)
+                move = card:snapTo({position = s.position, rotation = rotation},
+                                   dropOffset)
             else
-                local card = Obj.use(deck.takeObject {
+                card = Obj.use(deck.takeObject {
                     position = Vector(s.position) + dropOffset,
                     rotation = rotation
                 })
@@ -165,19 +166,22 @@ function layDistricts(city, deck, tag, rotate)
             end
             remainder = deck.remainder
             table.insert(moved, move)
+            if tag then
+                local ix = table.remove(districtIndices[tag])
+                print(ix, rot)
+                city.districts[ix] = {
+                    index = ix,
+                    terrain = card,
+                    rot = rot,
+                    props = terrainProps[card.getName()]
+                }
+                districts[card.guid] = city.districts[ix]
+            end
         end
         moved = async.par(moved):await()
         for _, c in pairs(moved) do
             c.setLock(true)
             if tag then
-                local ix = table.remove(districtIndices[tag])
-                city.districts[ix] = {
-                    index = ix,
-                    terrain = c,
-                    rotN = rotN,
-                    props = terrainProps[c.getName()]
-                }
-
                 local zone = spawnObject {
                     type = 'ScriptingTrigger',
                     position = c.getPosition(),
@@ -185,8 +189,8 @@ function layDistricts(city, deck, tag, rotate)
                 }
                 zone.addTag('Liberation')
                 zone.addTag('District')
-                city.districts[ix].zone = zone
-                city.districts[ix].liberation =
+                districts[c.guid].zone = zone
+                districts[c.guid].liberation =
                     iter.find(zone.getObjects(),
                               function(o)
                         o.hasTag('Liberation')
@@ -270,9 +274,9 @@ function City:setup()
 
         async.par {
             liberation:leaveTowards{position = {-60, 30, 0}},
-            layDistricts(self, districtsA, 'A', true),
-            layDistricts(self, districtsB, 'B', true),
-            layDistricts(self, districtsC, 'C', true)
+            layDistricts(self, districtsA, 'A'),
+            layDistricts(self, districtsB, 'B'),
+            layDistricts(self, districtsC, 'C')
         }:await()
 
         self.graph = Graph(self)
