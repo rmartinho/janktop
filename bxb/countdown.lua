@@ -15,8 +15,8 @@ return function(load)
             }
         end
 
-        function countdown:onStep(i)
-            local remain = #self.track - i
+        local function announce(self)
+            local remain = #self.track - self:index()
             local description = 'GAME OVER'
             if remain > 0 then
                 description =
@@ -24,13 +24,24 @@ return function(load)
                         ' remaining!'
             end
             broadcastToAll(description)
+        end
+
+        function countdown:onStep(i)
             self.marker.setDescription(description)
+        end
+
+        function countdown:setup()
+            return async(function()
+                Tracker.setup(self):await()
+                announce(self)
+            end)
         end
 
         function countdown:advance()
             return async(function()
                 local steps = morale:steps()
                 for i = 1, steps do Tracker.advance(self):await() end
+                announce(self)
             end)
         end
 

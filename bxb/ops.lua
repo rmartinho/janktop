@@ -36,7 +36,10 @@ local function advanceSquadsTo(tag)
     local movements = {}
     for _, source in ipairs(city.districts) do
         local squads = squadsIn(source.zone)
-        if #squads > 1 then
+        local hasOccupation = iter.find(source.zone.getObjects(), function(o)
+            return o.hasTag('Occupation')
+        end)
+        if #squads > 1 and not hasOccupation then
             local target = criteria(iter.filter(city:adjacentTo(source),
                                                 function(d)
                 if tag == 'highest' then
@@ -65,32 +68,31 @@ local function advanceSquadsTo(tag)
         end
     end
 
-    async(function()
-        for i, squads in pairs(movements) do
-            async.fork(function()
-                Layout.of(city.districts[i].zone):insert(squads)
-            end)
-            async.wait()
-            async.wait(function()
-                return iter.all(squads, function(s)
-                    return s.resting
-                end)
-            end)
-        end
-    end)
+    local moves = {}
+    for i, squads in pairs(movements) do
+        local layout = Layout.of(city.districts[i].zone)
+        table.insert(moves, layout:insert(squads))
+    end
+    return async.par(moves)
 end
 
 local function rotateSquads()
+    local moves = {}
     for i = 1, 25 do
         local d = city.districts[i]
         local squads = squadsIn(d.zone)
-        for i = 6, #squads do Layout.remove(squads[i]) end
+        for i = 6, #squads do
+            table.insert(moves, Layout.remove(squads[i]))
+        end
     end
+    return async.par(moves)
 end
 
 local function deployInZone(zone, obj)
-    local l = Layout.of(zone)
-    Wait.frames(function() l:insert({obj}) end)
+    return async(function()
+        local l = Layout.of(zone)
+        l:insert{obj}:await()
+    end)
 end
 
 local function reinforce()
@@ -103,13 +105,15 @@ local function reinforce()
 end
 
 local function replaceVan()
-    local staging = Obj {tag = 'Staging Area'}
-    local newVan = vanIn(staging)
-    if not newVan then return end
-    local district = highestOf(iter.filter(city.districts, function(d)
-        return not vanIn(d.zone) and #squadsIn(d.zone) == 0
-    end))
-    return deployInZone(district.zone, newVan)
+    return async(function()
+        local staging = Obj {tag = 'Staging Area'}
+        local newVan = vanIn(staging)
+        if not newVan then return end
+        local district = highestOf(iter.filter(city.districts, function(d)
+            return not vanIn(d.zone) and #squadsIn(d.zone) > 0
+        end))
+        if district then deployInZone(district.zone, newVan):await() end
+    end)
 end
 
 local cardActions = {
@@ -206,7 +210,7 @@ return function(load)
             return async(function()
                 broadcastToAll('Police Ops: ' .. card.getName())
                 local f = cardActions[card.getName()]
-                Promise.ok(f()):await()
+                f():await()
             end)
         end
 

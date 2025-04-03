@@ -31,10 +31,9 @@ end
 
 local leaveDelay = 30
 function Layout.onLeave(z, o)
-    if Layout.inserting[o.guid] then return end
     local l = Layout.of(z)
-    if l then
-        if o.hasTag('Return') and l.sticky then o.memo = z.guid end
+    if o.hasTag('Return') and l and l.sticky then o.memo = z.guid end
+    if l and not Layout.inserting[o.guid] then
         if l.leaving then Wait.stop(l.leaving) end
         l.leaving = Wait.frames(function()
             l.leaving = nil
@@ -103,15 +102,15 @@ function Layout:insert(objects)
 end
 
 function Layout.remove(o)
-    local z = Obj.get {guid = o.memo}
-    local l = Layout.of(z)
-    if l then
-        l:drop(p, o)
-        return async(function()
+    return async(function()
+        local z = Obj.get {guid = o.memo}
+        local l = Layout.of(z)
+        if l then
+            l:drop(p, o)
             async.frames():await()
             return l:layout()
-        end)
-    end
+        end
+    end)
 end
 
 function Layout:layout(force)

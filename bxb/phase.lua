@@ -3,7 +3,12 @@ local Track = require 'tts/track'
 local Tracker = require 'tts/tracker'
 local async = require 'tts/async'
 
-function doPoliceOps() return ops:deal() end
+local function doPoliceOps()
+    return async(function()
+        ops:deal():await()
+        return true
+    end)
+end
 
 return function(load)
     load.phase = function(data)

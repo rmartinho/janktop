@@ -5,7 +5,7 @@ local Graph = Object:extend('Graph')
 function buildGraph(city)
     local adjs = {}
     for _, district in ipairs(city.districts) do
-        -- TODO highways
+        -- TODO highways but also graph is all fucked
         local baseAdj = district.props.adjacency
         local deltas = {
             {0, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, 0}

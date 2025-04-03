@@ -50,13 +50,23 @@ function setup()
         async.apause():await()
 
         async.par {
-            city:setup(), staging:setup(), countdown:setup(), loot:setup(),
-            barricades:setup(), graffiti:setup(), dice:setup()
+            city:setup(), staging:setup(), loot:setup(), barricades:setup(),
+            graffiti:setup(), dice:setup()
         }:await()
+        async.apause():await()
+
+        countdown:setup():await()
         async.apause():await()
 
         async.par {ops:setup(), police:setup()}:await()
         morale:setup():await()
+        async.apause():await()
+
+        reaction:setup():await()
+        async.apause():await()
+
+        conditions:setup():await()
+        meeting:setup():await()
         async.apause():await()
 
         turns:setup():await()
@@ -68,13 +78,6 @@ function setup()
         agendas:setup():await()
         async.apause():await()
 
-        reaction:setup():await()
-        async.apause():await()
-
-        conditions:setup():await()
-        meeting:setup():await()
-        async.apause():await()
-
         flame:setup():await()
         async.apause():await()
 
@@ -84,10 +87,9 @@ function setup()
         Ready.all():await()
         async.apause():await()
 
-        broadcastToAll('The game is ready to start!', 'Pink')
+        broadcastToAll('The game is starting!', 'Pink')
 
-        phase:setup():await()
-        async.apause():await()
+        phase:setup()
     end)
 end
 
