@@ -16,19 +16,17 @@ return function(load)
             }
         end
 
-        function conditions:deal()
-            async(function()
-                local card = Display.deal1(self)
+        function conditions:onDeal(card)
+            return async(function()
                 broadcastToAll('New condition: ' .. card.getName())
-                async.wait.rest(card)
                 Snap.get {base = card, tag = 'Flag', zoned = true}
             end)
         end
 
         function conditions:setup()
-            async(function()
-                Display.setup(self)
-                self:deal()
+            return async(function()
+                Display.setup(self):await()
+                self:deal():await()
             end)
         end
 

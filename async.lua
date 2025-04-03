@@ -1,67 +1,50 @@
 local Object = require 'tts/classic'
+local Promise = require 'tts/promise'
+local Thread = require 'tts/thread'
 
-local Thread = Object:extend('Thread')
-local Waiter = Object:extend('Waiter')
+local async = {wait = {}}
 
-function Thread:new(f) self.coro = coroutine.create(f) end
+function async.run(f)
+    return Promise(function(res, rej)
+        Thread.run(function()
+            local ok, r = pcall(f)
+            if ok then
+                res(r)
+            else
+                rej(r)
+            end
+        end)
+    end)
+end
 
-function Thread.wait(f)
-    assert(Thread.active, 'Thread.wait called outside of Thread')
+function async.frames(f)
     f = f or 1
-    local t = Thread.active
-    if type(f) == 'number' then
-        Wait.frames(function() t:resume() end, f)
-    else
-        Wait.condition(function() t:resume() end, f)
-    end
-    coroutine.yield()
+    return Promise(function(res, rej) Wait.frames(res, f) end)
 end
 
-function Thread:resume(...)
-    local oldActive = Thread.active
-    Thread.active = self
-    coroutine.resume(self.coro, ...)
-    Thread.active = oldActive
-end
-function Thread.run(f, ...)
-    local thread = Thread(f)
-    thread:resume(...)
+function async.condition(f)
+    return Promise(function(res, rej) Wait.condition(res, f) end)
 end
 
-function Waiter:new(f, wait1)
-    self.wait1 = wait1 == true
-    self.f = f
+function async.rest(o, opts)
+    local opts = opts or {}
+    return async(function()
+        if not opts.immediate then async.frames():await() end
+        async.condition(function() return o.isDestroyed() or o.resting end):await()
+        return o
+    end)
 end
 
-function Waiter:wait()
-    if self.wait1 then Thread.wait() end
-    Thread.wait(self.f)
-end
+async.race = Promise.first
 
-function Waiter.rest(o)
-    return Waiter(function() return o.isDestroyed() or o.resting end, true)
-end
+async.par = Promise.all
 
-local async = {Waiter = Waiter, wait = {}}
-setmetatable(async, {
-    __call = function(self, f)
-        if Thread.active then
-            f()
-        else
-            Thread.run(f)
-        end
-    end
-})
-setmetatable(async.wait, {
-    __call = function(self, ...) return Thread.wait(...) end,
-    __index = function(_, k)
-        if k ~= 'wait' and not Object[k] and type(Waiter[k]) == 'function' then
-            return function(...) return Waiter[k](...):wait() end
-        end
-    end
-})
+function async.apause(n) return async.frames(n or async.pauseDuration or 1) end
 
-function async.pause() return async.wait(async.pauseDuration or 10) end
+--- BEGIN GARBAGE ---
+async.wait = Thread.wait
+
+function async.pause(n) return async.wait(n or async.pauseDuration or 1) end
 
 function async.fork(f)
     local active = Thread.active
@@ -70,5 +53,9 @@ function async.fork(f)
     Thread.active = active
     return r
 end
+
+--- END GARBAGE ---
+
+setmetatable(async, {__call = function(self, ...) return self.run(...) end})
 
 return async

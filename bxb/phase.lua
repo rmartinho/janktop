@@ -3,6 +3,8 @@ local Track = require 'tts/track'
 local Tracker = require 'tts/tracker'
 local async = require 'tts/async'
 
+function doPoliceOps() return ops:deal() end
+
 return function(load)
     load.phase = function(data)
         local phases = {
@@ -34,10 +36,18 @@ return function(load)
                 track = nightTrack
             }
         end
-    
+
         function phase:setup()
-            Tracker.setup(self)
-            self.marker.setColorTint(turns:current())
+            return async(function()
+                self.marker.setColorTint(turns:current())
+                Tracker.setup(self):await()
+                local phase = self:phase()
+                if phase and phase.enter then
+                    if phase:enter():await() then
+                        self:advance():await()
+                    end
+                end
+            end)
         end
 
         function phase:onStep(i)
@@ -47,18 +57,20 @@ return function(load)
         end
 
         function phase:onLoop()
-            local color = turns:pass()
-            self.marker.setColorTint(color)
-            if self:isNight() then
-                if flame:color() == color then
-                    self:rebind(dayTrack)
-                else
-                    self:reset(1)
+            return async(function()
+                local color = turns:pass()
+                self.marker.setColorTint(color)
+                if self:isNight() then
+                    if flame:color() == color then
+                        self:rebind(dayTrack):await()
+                    else
+                        self:reset(1):await()
+                    end
+                elseif self:isDay() then
+                    flame:advance():await()
+                    self:rebind(nightTrack):await()
                 end
-            elseif self:isDay() then
-                flame:advance()
-                self:rebind(nightTrack)
-            end
+            end)
         end
 
         function phase:phase(i)
@@ -73,15 +85,16 @@ return function(load)
         function phase:isDay() return #self.track == #dayTrack end
 
         function phase:advance()
-            async(function()
+            return async(function()
                 local i = self:index() or 0
                 local phase = self:phase(i)
-                if phase and phase.exit then phase:exit() end
-                Tracker.advance(self)
-                async.wait.rest(self.marker)
+                if phase and phase.exit then phase:exit():await() end
+                Tracker.advance(self):await()
                 phase = self:phase()
                 if phase and phase.enter then
-                    if phase:enter() then self:advance() end
+                    if phase:enter():await() then
+                        self:advance():await()
+                    end
                 end
             end)
         end

@@ -1,19 +1,14 @@
 local Obj = require 'tts/obj'
-local async = require 'tts/async'
 
 return function(load)
     load.board = function()
-        local board = Obj.get {tag = 'Board'}
+        local board = Obj {tag = 'Board'}
 
         function board:setup()
-            async(function()
-                local cover = Obj.get {tag = 'Cover'}
-                cover.setPositionSmooth({0, 50, 0})
-                async.pause()
-                async.pause()
-                cover.destroy()
-            end)
+            local cover = Obj {tag = 'Cover'}
+            return cover:leaveTowards{position = {0, 50, 0}}
         end
+
         return board
     end
 end

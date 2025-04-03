@@ -3,33 +3,32 @@ local Snap = require 'tts/snap'
 local Layout = require 'tts/layout'
 local Pattern = require 'tts/pattern'
 local async = require 'tts/async'
+local iter = require 'tts/iter'
 
-local function throwOff(o)
-    async(function()
-        o:snapTo({position = {60, 50, 0}})
-        async.pause()
-        o.destroy()
-    end)
-end
+local discardPosition = {-50, 30, 0}
 
 return function(load)
     load.playerBoards = function()
         local playerBoards = {}
 
         function playerBoards:setup()
-            factionOrder = {}
-            local delivered = {}
-            for i = 1, #turns.players do
-                local faction = factions[turns.players[i]]
-                local board = Obj.get {tags = {'Player Board', faction}}
-                local snap = Snap.get {tags = {'Player Board', 'n' .. i}}
-                delivered[faction] = true
-                factionOrder[faction] = i
-                async(function()
-                    board:snapTo(snap[1])
-                    async.wait.rest(board)
+            local distribute = async(function()
+                factionOrder = {}
+                local delivered = {}
+                for i = 1, #turns.players do
+                    local color = turns.players[i]
+                    local faction = factions[color]
+                    broadcastToAll(
+                        Player[color].steam_name .. ' will play the ' .. faction,
+                        color)
+
+                    local board = Obj {tags = {'Player Board', faction}}
+                    local snap = Snap.get {tags = {'Player Board', 'n' .. i}}
+                    delivered[faction] = true
+                    factionOrder[faction] = i
+                    board:snapTo(snap[1], {0, 0.5, 0}):await()
                     local layout = Layout {
-                        zone = Obj.get {tags = {'Player Staging', 'n' .. i}},
+                        zone = Obj {tags = {'Player Staging', 'n' .. i}},
                         patterns = {
                             ['Bloc'] = Pattern.fromSnaps(Snap.get {
                                 base = board,
@@ -60,34 +59,40 @@ return function(load)
                         },
                         sticky = true
                     }
-                    async.fork(function()
-                        layout:insert(getObjectsWithAllTags({'Bloc', faction}))
-                        layout:insert(getObjectsWithAllTags({'Flag', faction}))
+                    async.par {
+                        layout:insert(getObjectsWithAllTags {'Bloc', faction}),
+                        layout:insert(getObjectsWithAllTags {'Flag', faction}),
                         layout:insert(
-                            getObjectsWithAllTags({'Occupation', faction}))
-                    end)
-                end)
+                            getObjectsWithAllTags {'Occupation', faction})
+                    }:await()
+                end
+            end)
+            local delivered = {}
+            for _, color in pairs(turns.players) do
+                delivered[color] = true
             end
-
-            for _, f in pairs(factions) do
-                if not delivered[f] then
-                    async.fork(function()
-                        local board = Obj.get {tags = {'Player Board', f}}
-                        throwOff(board)
-                        for _, o in pairs(getObjectsWithAllTags({'Bloc', f})) do
-                            throwOff(Obj.use(o))
-                        end
-                        for _, o in pairs(getObjectsWithAllTags({'Flag', f})) do
-                            throwOff(Obj.use(o))
-                        end
-                        for _, o in pairs(
-                                        getObjectsWithAllTags({'Occupation', f})) do
-                            throwOff(Obj.use(o))
-                        end
-                    end)
-
+            local function discard(o)
+                return Obj.use(o):leaveTowards{position = discardPosition}
+            end
+            local actions = {distribute}
+            for c, f in pairs(factions) do
+                if not delivered[c] then
+                    local board = Obj {tags = {'Player Board', f}}
+                    table.insert(actions,
+                                 board:leaveTowards{position = discardPosition})
+                    table.insert(actions, async.par(
+                                     iter.map(getObjectsWithAllTags {'Bloc', f},
+                                              discard)))
+                    table.insert(actions, async.par(
+                                     iter.map(getObjectsWithAllTags {'Flag', f},
+                                              discard)))
+                    table.insert(actions, async.par(
+                                     iter.map(
+                                         getObjectsWithAllTags {'Occupation', f},
+                                         discard)))
                 end
             end
+            return async.par(actions)
         end
 
         return playerBoards

@@ -94,58 +94,72 @@ local function deployInZone(zone, obj)
 end
 
 local function reinforce()
-    local staging = Obj.get {tag = 'Staging Area'}
+    local staging = Obj {tag = 'Staging Area'}
     local squads = squadsIn(staging)
-    for _, d in ipairs(city.districts) do
+    return async.par(iter.filterMap(city.districts, function(d)
         local van = vanIn(d.zone)
-        if van then deployInZone(d.zone, table.remove(squads)) end
-    end
+        if van then return deployInZone(d.zone, table.remove(squads)) end
+    end))
 end
 
 local function replaceVan()
-    local staging = Obj.get {tag = 'Staging Area'}
+    local staging = Obj {tag = 'Staging Area'}
     local newVan = vanIn(staging)
     if not newVan then return end
     local district = highestOf(iter.filter(city.districts, function(d)
         return not vanIn(d.zone) and #squadsIn(d.zone) == 0
     end))
-    deployInZone(district.zone, newVan)
+    return deployInZone(district.zone, newVan)
 end
 
 local cardActions = {
-    ['Advance to State Districts'] = function() advanceSquadsTo('State') end,
+    ['Advance to State Districts'] = function()
+        return advanceSquadsTo('State')
+    end,
     ['Advance to Commercial Districts'] = function()
-        advanceSquadsTo('Commercial')
+        return advanceSquadsTo('Commercial')
     end,
-    ['Advance to Public Districts'] = function() advanceSquadsTo('Public') end,
+    ['Advance to Public Districts'] = function()
+        return advanceSquadsTo('Public')
+    end,
     ['Advance to Neighbors Districts'] = function()
-        advanceSquadsTo('Neighbors')
+        return advanceSquadsTo('Neighbors')
     end,
-    ['Advance to Workers Districts'] = function() advanceSquadsTo('Workers') end,
+    ['Advance to Workers Districts'] = function()
+        return advanceSquadsTo('Workers')
+    end,
     ['Advance to Students Districts'] = function()
-        advanceSquadsTo('Students')
+        return advanceSquadsTo('Students')
     end,
     ['Advance to Prisoners Districts'] = function()
-        advanceSquadsTo('Prisoners')
+        return advanceSquadsTo('Prisoners')
     end,
-    ['District Patrols'] = function() advanceSquadsTo('highest') end,
+    ['District Patrols'] = function() return advanceSquadsTo('highest') end,
     ['Snatch Squads'] = function()
-        morale:advance()
-        advanceSquadsTo('blocs')
+        return async(function()
+            morale:advance():await()
+            advanceSquadsTo('blocs'):await()
+        end)
     end,
     ['Paramilitary Raids'] = function()
-        morale:advance()
-        advanceSquadsTo('occupations')
+        return async(function()
+            morale:advance():await()
+            advanceSquadsTo('occupations'):await()
+        end)
     end,
-    ['Strategic Rotation'] = function() rotateSquads() end,
+    ['Strategic Rotation'] = function() return rotateSquads() end,
     ['Light Reinforcements'] = function()
-        morale:advance()
-        reinforce()
+        return async(function()
+            morale:advance():await()
+            reinforce():await()
+        end)
     end,
     ['Heavy Reinforcements'] = function()
-        morale:advance()
-        reinforce()
-        replaceVan()
+        return async(function()
+            morale:advance():await()
+            reinforce():await()
+            replaceVan():await()
+        end)
     end
 }
 
@@ -165,30 +179,35 @@ return function(load)
         end
 
         function ops:setup()
-            local expectedTag = {
-                Easy = difficulty == 1,
-                Medium = difficulty == 2,
-                Hard = difficulty == 3,
-                Expert = difficulty == 4
-            }
+            return async(function()
+                local difficultyNames = {'Easy', 'Medium', 'Hard', 'Expert'}
+                broadcastToAll(difficultyNames[difficulty] .. ' mode (' ..
+                                   difficulty .. ' Heavy Reinforcements)')
 
-            Obj.get {tags = {'Police Ops', 'Deck'}}:removeObjectsIf(
-                self.discard.position, function(card)
+                local expectedTag = {
+                    Easy = difficulty == 1,
+                    Medium = difficulty == 2,
+                    Hard = difficulty == 3,
+                    Expert = difficulty == 4
+                }
+
+                local deck = Obj {tags = {'Police Ops', 'Deck'}}
+                deck:removeObjectsIf({-60, 30, 0}, function(card)
                     return not iter.any(card.tags,
                                         function(t)
                         return expectedTag[t]
                     end)
-                end)
-            Discard.setup(self)
+                end):await()
+                Discard.setup(self):await()
+            end)
         end
 
-        function ops:onTopChanged()
-            local card = self:topOfDiscard()
-            if card then
-                broadcastToAll('Resolving Police Ops: ' .. card.getName())
+        function ops:onDeal(card)
+            return async(function()
+                broadcastToAll('Police Ops: ' .. card.getName())
                 local f = cardActions[card.getName()]
-                f()
-            end
+                Promise.ok(f()):await()
+            end)
         end
 
         return ops

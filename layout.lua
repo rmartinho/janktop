@@ -1,5 +1,6 @@
 local Object = require 'tts/classic'
 local Obj = require 'tts/obj'
+local async = require 'tts/async'
 
 local Layout = Object:extend('Layout')
 
@@ -8,15 +9,6 @@ Layout.zones = {}
 -- TODO load
 
 function Layout.of(zone) return Layout.zones[zone.guid] end
-
-function Layout.remove(o)
-    local z = Obj.get {guid = o.memo}
-    local l = Layout.of(z)
-    if l then
-        l:drop(p, o)
-        Wait.frames(function() l:layout() end, 1)
-    end
-end
 
 function Layout.onDrop(p, o)
     local dropped = {}
@@ -37,6 +29,7 @@ function Layout.onDrop(p, o)
     end
 end
 
+local leaveDelay = 30
 function Layout.onLeave(z, o)
     if Layout.inserting[o.guid] then return end
     local l = Layout.of(z)
@@ -46,7 +39,7 @@ function Layout.onLeave(z, o)
         l.leaving = Wait.frames(function()
             l.leaving = nil
             l:layout(true)
-        end, 30)
+        end, leaveDelay)
     end
 end
 
@@ -70,16 +63,19 @@ local function layoutWith(self, dropped, pattern, tag)
 
     local points = pattern:points(#objects)
     local max = #points > #objects and #objects or #points
+    local moves = {}
     for i = 1, max do
         local o = Obj.use(objects[i])
         if self.preserveRotationValue then
             local value = o.getValue()
             points[i].rotation = o.getRotationValues()[value].rotation
         end
-        o:snapTo(points[i], {0, 1, 0})
-        Wait.condition(function() Layout.inserting[o.guid] = nil end,
-                       function() return o.resting end)
+        table.insert(moves, async(function()
+            o:snapTo(points[i], {0, 1, 0}):await()
+            Layout.inserting[o.guid] = nil
+        end))
     end
+    return async.par(moves)
 end
 
 function Layout:new(params)
@@ -103,7 +99,19 @@ function Layout:insert(objects)
             table.insert(self.dropped, {object = o, player = nil})
         end
     end
-    self:layout()
+    return self:layout()
+end
+
+function Layout.remove(o)
+    local z = Obj.get {guid = o.memo}
+    local l = Layout.of(z)
+    if l then
+        l:drop(p, o)
+        return async(function()
+            async.frames():await()
+            return l:layout()
+        end)
+    end
 end
 
 function Layout:layout(force)
@@ -113,11 +121,13 @@ function Layout:layout(force)
     self.dropped = {}
 
     if self.patterns then
+        local layouts = {}
         for t, p in pairs(self.patterns) do
-            layoutWith(self, dropped, p, t)
+            table.insert(layouts, layoutWith(self, dropped, p, t))
         end
+        return async.par(layouts)
     else
-        layoutWith(self, dropped, self.pattern)
+        return layoutWith(self, dropped, self.pattern)
     end
 end
 

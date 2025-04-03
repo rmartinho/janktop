@@ -20,17 +20,17 @@ local function updateVisibility()
     end
 end
 
-function Ready.waitAll()
-    Ready.wait(iter.map(Player.getPlayers(), function(p) return p.color end))
+function Ready.all()
+    return Ready.some(iter.map(Player.getPlayers(), function(p) return p.color end))
 end
 
-function Ready.wait(colors)
-    async(function()
+function Ready.some(colors)
+    return async(function()
         Ready.visibility = {}
         for _, c in pairs(colors) do Ready.visibility[c] = true end
         Ready.counter = #colors
         updateVisibility()
-        async.wait(function() return Ready.counter == 0 end)
+        async.condition(function() return Ready.counter == 0 end):await()
     end)
 end
 

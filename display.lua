@@ -41,11 +41,11 @@ end
 function Display.load(data) return Display {load = data} end
 
 function Display:deal(n)
-    n = n or 1
-    async(function()
+    return async(function()
+        n = n or 1
         for i = 1, n do
-            self:deal1()
-            async.pause()
+            self:deal1():await()
+            async.apause():await()
         end
     end)
 end
@@ -53,47 +53,55 @@ end
 local dropOffset = Vector(0, 0.5, 0)
 
 function Display:deal1()
-    local draw = self:drawPile()
-    local snap = iter.find(self.displays,
-                           function(d) return #d.zone.getObjects() == 0 end)
-    if snap then
-        local card = draw.takeObject {
-            position = Vector(snap.position) + dropOffset,
-            rotation = snap.rotation,
-            flip = true
-        }
-        async.wait.rest(card)
-        if self.locks then card.setLock(true) end
-        if self.onTopChanged then self:onTopChanged() end
-        return card
-    else
-        draw.flip()
-        async.wait.rest(draw)
-        if self.locks then draw.setLock(true) end
-        return draw
-    end
+    return async(function()
+        local draw = self:drawPile()
+        local snap = iter.find(self.displays,
+                               function(d)
+            return #d.zone.getObjects() == 0
+        end)
+        if snap then
+            local card = draw.takeObject {
+                position = Vector(snap.position) + dropOffset,
+                rotation = snap.rotation,
+                flip = true
+            }
+            async.rest(card):await()
+            if self.locks then card.setLock(true) end
+            if self.onDeal then self:onDeal(card):await() end
+            if self.onTopChanged then self:onTopChanged():await() end
+            return card
+        else
+            draw.flip()
+            async.rest(draw):await()
+            if self.locks then draw.setLock(true) end
+            if self.onDeal then self:onDeal(draw):await() end
+            if self.onTopChanged then self:onTopChanged():await() end
+            return draw
+        end
+    end)
 end
 
 function Display:drawPile() return Obj.use(self.draw.zone.getObjects()[1]) end
 
 function Display:topOfDraw()
     local deck = self:drawPile()
-    if deck.type == 'Card' then
-        return deck
-    else
-        return deck.getObjects()[1]
+    if deck then
+        if deck.type == 'Card' then
+            return deck
+        else
+            return deck.getObjects()[1]
+        end
     end
 end
 
 function Display:setup()
-    async(function()
+    return async(function()
         if self.tag then
             local deck = Obj.get {tags = {self.tag, 'Deck'}}
             deck.shuffle()
-            deck:snapTo(self.draw, dropOffset)
-            async.wait.rest(deck)
+            deck:snapTo(self.draw, dropOffset):await()
             deck.setLock(self.locks)
-            if self.onTopChanged then self:onTopChanged() end
+            if self.onTopChanged then self:onTopChanged():await() end
         end
     end)
 end

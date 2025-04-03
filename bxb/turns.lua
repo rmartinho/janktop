@@ -1,4 +1,5 @@
 local Turns = require 'tts/turns'
+local async = require 'tts/async'
 
 return function(load)
     load.turns = function(data)

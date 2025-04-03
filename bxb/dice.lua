@@ -10,16 +10,14 @@ return function(load)
 
         function dice:setup()
             local layout = Layout {
-                zone = Obj.get {tag = 'Dice Area'},
+                zone = Obj {tag = 'Dice Area'},
                 pattern = Pattern.columns {
                     corner = Snap.get{base = board, tag = 'Die'}[1],
                     height = 5,
                     spread = -1.7
                 }, preserveRotationValue = true
             }
-            async.fork(function()
-                layout:insert(getObjectsWithTag('Die'))
-            end)
+            return layout:insert(getObjectsWithTag('Die'))
         end
 
         return dice

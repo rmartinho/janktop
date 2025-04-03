@@ -1,16 +1,17 @@
 local Object = require 'tts/classic'
-local Track = require 'tts/track'
 local Obj = require 'tts/obj'
+local Track = require 'tts/track'
+local Promise = require 'tts/promise'
 local async = require 'tts/async'
 
 local Tracker = Object:extend('Tracker')
 
 function Tracker:new(params)
     if params.load then
-        self.marker = Obj.get {guid = params.load.marker}
+        self.marker = Obj {guid = params.load.marker}
         self.track = Track.load(params.load.track)
     else
-        self.marker = params.marker
+        self.marker = Obj.use(params.marker)
         self.track = params.track
     end
 end
@@ -23,20 +24,23 @@ function Tracker.load(data) return Tracker {load = data} end
 
 function Tracker:rebind(track, i)
     self.track = track
-    self:reset(i)
+    return self:reset(i):await()
 end
 
 function Tracker:advance(n)
-    n = n or 1
-    local i = self:index() or 0
-    local i2, looped = self:reset(i + n)
-    if looped and self.onLoop then self:onLoop() end
-    return i2, looped
+    return async(function()
+        n = n or 1
+        local i = self:index() or 0
+        local a = self:reset(i + n):await()
+        local i2, looped = a
+        if looped and self.onLoop then Promise.ok(self:onLoop()):await() end
+        return i2, looped
+    end)
 end
 
 function Tracker:reverse(n)
     n = n or 1
-    self.advance(self, -n)
+    return self.advance(self, -n)
 end
 
 function Tracker:setup(i) return self:reset(i) end
@@ -44,14 +48,13 @@ function Tracker:setup(i) return self:reset(i) end
 local dropOffset = Vector(0, 0.5, 0)
 
 function Tracker:reset(i)
-    i, looped = self.track:boundedIndex(i or 1)
-    local pt = self.track.points[i]
-    async(function()
-        self.marker:snapTo(pt, dropOffset)
-        async.wait.rest(self.marker)
+    return async(function()
+        local i2, looped = self.track:boundedIndex(i or 1)
+        local pt = self.track.points[i2]
+        self.marker:snapTo(pt, dropOffset):await()
+        if self.onStep then Promise.ok(self:onStep(i2, looped)):await() end
+        return {i2, looped}
     end)
-    if self.onStep then self:onStep(i, looped) end
-    return i, looped
 end
 
 function Tracker:index() return self.track:indexOf(self.marker) end

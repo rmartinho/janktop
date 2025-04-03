@@ -25,12 +25,7 @@ require("tts/bxb/meeting")(loader)
 require("tts/bxb/barricades")(loader)
 require("tts/bxb/staging")(loader)
 require("tts/bxb/dice")(loader)
-require("tts/bxb/vans")(loader)
-
-function doCountdown()
-    countdown:advance()
-    return true
-end
+require("tts/bxb/police")(loader)
 
 function onLoad(saveData)
     local saved = JSON.decode(saveData) or {}
@@ -46,51 +41,53 @@ function onSave()
     return JSON.encode(toSave)
 end
 
-local function broadcastGameMode()
-    local difficultyNames = {'Easy', 'Medium', 'Hard', 'Expert'}
-    broadcastToAll(difficultyNames[difficulty] .. ' mode (' .. difficulty ..
-                       ' Heavy Reinforcements)')
-    if gameMode == 'conflict' then
-        broadcastToAll('Conflict agendas: at least one player wins alone')
-    end
-    if gameMode == 'cooperation' then
-        broadcastToAll('Cooperation agendas: everyone wins together')
-    else
-        broadcastToAll(
-            'Standard agendas: maybe some players win alone')
-    end
-end
-
 function setup()
     UI.setAttribute('setupPanel', 'active', 'false')
-    broadcastGameMode()
+    broadcastToAll('Setting up the game...')
+    async.pauseDuration = 10
     async(function()
-        board:setup()
-        turns:setup()
-        agendas:setup()
-        async.fork(function() playerBoards:setup() end)
-        barricades:setup()
-        staging:setup()
-        dice:setup()
-        city:setup()
-        async.wait(function() return city.built == 25 end)
-        vans:setup()
-        async.fork(function()
-            loot:setup()
-            graffiti:setup()
-        end)
-        reaction:setup()
-        ops:setup()
-        conditions:setup()
-        meeting:setup()
-        morale:setup()
-        countdown:setup()
-        flame:setup()
-        phase:setup()
-        broadcastToAll('Place your Start occupation in one of your districts', 'Pink')
-        Ready.waitAll()
-        ops:deal()
-        phase:advance()
+        board:setup():await()
+        async.apause():await()
+
+        async.par {
+            city:setup(), staging:setup(), countdown:setup(), loot:setup(),
+            barricades:setup(), graffiti:setup(), dice:setup()
+        }:await()
+        async.apause():await()
+
+        async.par {ops:setup(), police:setup()}:await()
+        morale:setup():await()
+        async.apause():await()
+
+        turns:setup():await()
+        async.apause():await()
+
+        playerBoards:setup():await()
+        async.apause():await()
+
+        agendas:setup():await()
+        async.apause():await()
+
+        reaction:setup():await()
+        async.apause():await()
+
+        conditions:setup():await()
+        meeting:setup():await()
+        async.apause():await()
+
+        flame:setup():await()
+        async.apause():await()
+
+        broadcastToAll('Place your Start occupation in one of your districts',
+                       'Pink')
+
+        Ready.all():await()
+        async.apause():await()
+
+        broadcastToAll('The game is ready to start!', 'Pink')
+
+        phase:setup():await()
+        async.apause():await()
     end)
 end
 

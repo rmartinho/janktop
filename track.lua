@@ -1,6 +1,7 @@
 local Object = require 'tts/classic'
-local iter = require 'tts/iter'
+local Obj = require 'tts/obj'
 local Snap = require 'tts/snap'
+local iter = require 'tts/iter'
 
 local Track = Object:extend('Track')
 
@@ -46,7 +47,7 @@ function Track:boundedIndex(i)
 end
 
 function Track:indexOf(o)
-    for i, pt in ipairs(self.points) do if o:isIn(pt.zone) then return i end end
+    for i, pt in ipairs(self.points) do if Obj.use(o):isIn(pt.zone) then return i end end
 end
 
 return Track

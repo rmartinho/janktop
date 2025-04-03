@@ -12,7 +12,7 @@ return function(load)
             morale = Tracker.load(data)
         else
             morale = Tracker {
-                marker = Obj.get {tag = 'Police Morale'},
+                marker = Obj {tag = 'Police Morale'},
                 track = Track {base = board, snapTag = 'Police Morale'}
             }
         end

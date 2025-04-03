@@ -9,13 +9,15 @@ return function(load)
         local meeting = {}
 
         function meeting:setup()
-            self.layout = Layout {
-                zone = Obj.get {tag = 'Meeting'},
-                pattern = Pattern.fromSnaps(Snap.get {
-                    base = Obj.get {tags = {'Condition', 'Deck'}},
-                    tag = 'Meeting'
-                })
-            }
+            return async(function()
+                self.layout = Layout {
+                    zone = Obj {tag = 'Meeting'},
+                    pattern = Pattern.fromSnaps(Snap.get {
+                        base = Obj {tags = {'Condition', 'Deck'}},
+                        tag = 'Meeting'
+                    })
+                }
+            end)
         end
 
         function meeting:resolve()

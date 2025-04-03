@@ -1,6 +1,7 @@
 local Object = require 'tts/classic'
 local Obj = require 'tts/obj'
 local Snap = require 'tts/snap'
+local Promise = require 'tts/promise'
 local iter = require 'tts/iter'
 local async = require 'tts/async'
 
@@ -49,11 +50,11 @@ end
 function Discard.load(data) return Discard {load = data} end
 
 function Discard:deal(n)
-    n = n or 1
-    async(function()
+    return async(function()
+        n = n or 1
         for i = 1, n do
-            self:deal1()
-            async.pause()
+            self:deal1():await()
+            async.apause():await()
         end
     end)
 end
@@ -65,18 +66,19 @@ function Discard:deal1()
     local discard = self:discardPile()
     local dropPos = discard and discard:deckDropPosition() or
                         self.discard.position
-    async(function()
+    return async(function()
         if not draw and self.refreshes then
-            self:refresh()
-            self:deal1()
+            self:refresh():await()
+            self:deal1():await()
         elseif draw.type == 'Card' then
             if self.locks then draw.setLock(false) end
             if self.flip then draw.flip() end
-            draw:snapTo({position = dropPos}, dropOffset)
+            draw:snapTo({position = dropPos}, dropOffset):await()
             self:unlock()
-            async.wait.rest(draw)
+            async.rest(draw):await()
             self:lock()
-            if self.onTopChanged then self:onTopChanged() end
+            if self.onDeal then self:onDeal(draw):await() end
+            if self.onTopChanged then self:onTopChanged():await() end
         else
             local card = draw.takeObject {
                 position = Vector(dropPos) + dropOffset,
@@ -84,9 +86,10 @@ function Discard:deal1()
                 flip = self.flip
             }
             self:unlock()
-            async.wait.rest(card)
+            async.rest(card):await()
             self:lock()
-            if self.onTopChanged then self:onTopChanged() end
+            if self.onDeal then self:onDeal(card):await() end
+            if self.onTopChanged then self:onTopChanged():await() end
         end
     end)
 end
@@ -118,18 +121,17 @@ function Discard:topOfDiscard()
 end
 
 function Discard:refresh()
-    local deck = self.discard.zone.getObjects()[1]
-    if not deck then return end
-    async(function()
+    return async(function()
+        local deck = self.discard.zone.getObjects()[1]
+        if not deck then return end
         if self.flip then deck.flip() end
-        Obj.use(deck):snapTo(self.draw, dropOffset)
+        Obj.use(deck):snapTo(self.draw, dropOffset):await()
         deck.shuffle()
-        async.wait.rest(deck)
         if deck.type == 'Deck' then
             deck.setName(self.name)
             deck.setDescription(self.description)
         end
-        if self.onRefresh then self:onRefresh() end
+        if self.onRefresh then self:onRefresh():await() end
     end)
 end
 
@@ -146,14 +148,15 @@ function Discard:unlock()
 end
 
 function Discard:setup()
-    async(function()
+    return async(function()
         if self.tag then
             local deck = Obj.get {tags = {self.tag, 'Deck'}}
             deck.shuffle()
-            deck:snapTo(self.draw, dropOffset)
-            async.wait.rest(deck)
+            deck:snapTo(self.draw, dropOffset):await()
             deck.setLock(self.locks)
-            if self.onTopChanged then self:onTopChanged() end
+            if self.onTopChanged then
+                self:onTopChanged():await()
+            end
         end
         self.name = self:drawPile().getName()
         self.description = self:drawPile().getDescription()

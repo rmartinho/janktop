@@ -5,6 +5,7 @@ local Snap = require 'tts/snap'
 return function(load)
     load.loot = function(data)
         local loot
+    
         if data then
             loot = Discard.load(data)
         else
@@ -21,6 +22,7 @@ return function(load)
     end
     load.graffiti = function(data)
         local graffiti
+
         if data then
             graffiti = Discard.load(data)
         else
@@ -30,6 +32,7 @@ return function(load)
                 locks = true
             }
         end
+    
         return graffiti
     end
 end

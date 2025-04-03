@@ -9,8 +9,10 @@ return function(load)
         local barricades = {}
 
         function barricades:setup()
+            Snap.get {base = board, tags = {'Barricade', 'Spot'}, zoned = true}
+
             local layout = Layout {
-                zone = Obj.get {tag = 'Barricade Area'},
+                zone = Obj {tag = 'Barricade Area'},
                 pattern = Pattern.rows {
                     corner = Snap.get{
                         base = board,
@@ -22,11 +24,7 @@ return function(load)
                 },
                 sticky = true
             }
-            async.fork(function()
-                layout:insert(getObjectsWithTag('Barricade'))
-            end)
-
-            Snap.get {base = board, tags = {'Barricade', 'Spot'}, zoned = true}
+            return layout:insert(getObjectsWithTag('Barricade'))
         end
 
         return barricades

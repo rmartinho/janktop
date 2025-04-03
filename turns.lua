@@ -1,4 +1,5 @@
 local Object = require 'tts/classic'
+local Promise = require 'tts/promise'
 local iter = require 'tts/iter'
 
 local Turns = Object:extend('Turns')
@@ -46,7 +47,7 @@ function Turns:setup()
         for c, ok in pairs(free) do if ok then return c end end
     end
     local hands = Hands.getHands()
-    local handWithIndex = function(i)
+    local function handWithIndex(i)
         return iter.find(hands, function(h) return h.hasTag('n' .. i) end)
     end
     if self.random then
@@ -82,6 +83,7 @@ function Turns:setup()
     end
 
     self.i = math.random(#self.players)
+    return Promise.ok()
 end
 
 return Turns

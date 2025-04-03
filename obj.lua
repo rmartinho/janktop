@@ -1,12 +1,19 @@
 local Proxy = require 'tts/proxy'
 local async = require 'tts/async'
+local iter = require 'tts/iter'
 
 local Obj = {}
-local ObjExt = {}
+local Ext = {}
 
 local function fromProxy(pxy)
     local obj = {}
-    local meta = {__index = function(_, k) return ObjExt[k] or pxy[k] end}
+    local meta = {
+        __index = function(_, k) return Ext[k] or pxy[k] end,
+        __tostring = function(o)
+            local inner = getmetatable(o).__proxy
+            return tostring(inner) .. ' ' .. inner.guid
+        end
+    }
     setmetatable(meta, {__index = getmetatable(pxy)})
     setmetatable(obj, meta)
     return obj
@@ -32,13 +39,15 @@ function Obj.get(params)
     end
 end
 
-function Obj.use(o) if o then return fromProxy(Proxy.create(o)) end end
+function Obj.use(o) if o then return fromProxy(Proxy(o)) end end
 
 function Obj.load(data) return Obj.get {guid = data.guid} end
 
-function ObjExt:save() return {guid = self.guid} end
+setmetatable(Obj, {__call = function(self, ...) return self.get(...) end})
 
-function ObjExt:snapTo(snap, offset)
+function Ext:save() return {guid = self.guid} end
+
+function Ext:snapTo(snap, offset)
     local pos = Vector(snap.position)
     if offset then pos = pos + Vector(offset) end
     local locked = self.getLock()
@@ -51,38 +60,48 @@ function ObjExt:snapTo(snap, offset)
         end
         self.setRotationSmooth(rotation)
     end
-    if offset then
-        async(function()
-            async.wait.rest(self)
+    return async(function()
+        if offset then
+            async.rest(self):await()
             self.setLock(locked)
-        end)
-    end
+        end
+        return self
+    end)
 end
 
-function ObjExt:isIn(zone)
+function Ext:leaveTowards(snap, duration)
+    return async(function()
+        self:snapTo(snap):await()
+        async.frames(duration or 10):await()
+        self.destroy()
+    end)
+end
+
+function Ext:isIn(zone)
     local zones = self.getZones()
     for _, z in pairs(zones) do if z.guid == zone.guid then return true end end
     return false
 end
 
-function ObjExt:deckDropPosition()
+function Ext:deckDropPosition()
     local bounds = self.getVisualBoundsNormalized()
     return {
         bounds.center.x, bounds.center.y + bounds.size.y / 2, bounds.center.z
     }
 end
 
-function ObjExt:removeObjectsIf(pos, f)
+function Ext:removeObjectsIf(pos, f)
     local cards = self.getObjects()
     local toRemove = {}
     for i = 1, #cards do
         if f(cards[i]) then table.insert(toRemove, cards[i].guid) end
     end
-
-    for _, guid in pairs(toRemove) do
-        local card = self.takeObject({guid = guid, position = pos})
-        Wait.frames(function() card.destroy() end)
-    end
+    return async.par(iter.map(toRemove, function(guid)
+        return async(function()
+            local card = Obj.use(self.takeObject {guid = guid, position = pos})
+            card:leaveTowards(pos):await()
+        end)
+    end))
 end
 
 return Obj

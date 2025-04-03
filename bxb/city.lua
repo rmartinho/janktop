@@ -7,7 +7,7 @@ local Graph = require 'tts/bxb/graph'
 local iter = require 'tts/iter'
 local async = require 'tts/async'
 
-local dropOffset = Vector(0, 0.2, 0)
+local dropOffset = Vector(0, 0.3, 0)
 
 local terrainProps = {
     ['Highway'] = {priority = -1, difficulty = 100, adjacency = {0, 0, 0, 0}},
@@ -135,7 +135,7 @@ function layDistricts(city, deck, tag, rotate)
         B = {23, 19, 16, 14, 11, 8, 5, 2},
         C = {24, 21, 18, 15, 12, 10, 7, 3}
     }
-    async(function()
+    return async(function()
         local snaps = tag and
                           iter.filter(city.snaps,
                                       function(s)
@@ -150,37 +150,34 @@ function layDistricts(city, deck, tag, rotate)
                 rotN = math.random(0, 3)
                 rotation = {0, rotN * 90, 180}
             end
-            local card
+            local move
             if remainder then
-                card = remainder
-                Obj.use(card):snapTo({
+                move = Obj.use(remainder):snapTo({
                     position = s.position,
                     rotation = rotation
                 }, dropOffset)
             else
-                card = deck.takeObject {
+                local card = Obj.use(deck.takeObject {
                     position = Vector(s.position) + dropOffset,
                     rotation = rotation
-                }
+                })
+                move = async.rest(card)
             end
             remainder = deck.remainder
-            async.wait()
-            table.insert(moved, card)
+            table.insert(moved, move)
+        end
+        moved = async.par(moved):await()
+        for _, c in pairs(moved) do
+            c.setLock(true)
             if tag then
                 local ix = table.remove(districtIndices[tag])
                 city.districts[ix] = {
                     index = ix,
-                    terrain = card,
+                    terrain = c,
                     rotN = rotN,
-                    props = terrainProps[card.getName()]
+                    props = terrainProps[c.getName()]
                 }
-                city.districts[card.guid] = city.districts[ix]
-            end
-        end
-        for _, c in pairs(moved) do
-            async.wait.rest(c)
-            c.setLock(true)
-            if tag then
+
                 local zone = spawnObject {
                     type = 'ScriptingTrigger',
                     position = c.getPosition(),
@@ -188,8 +185,8 @@ function layDistricts(city, deck, tag, rotate)
                 }
                 zone.addTag('Liberation')
                 zone.addTag('District')
-                city.districts[c.guid].zone = zone
-                city.districts[c.guid].liberation =
+                city.districts[ix].zone = zone
+                city.districts[ix].liberation =
                     iter.find(zone.getObjects(),
                               function(o)
                         o.hasTag('Liberation')
@@ -233,7 +230,6 @@ function layDistricts(city, deck, tag, rotate)
                     patterns.Graffiti = Pattern.fromSnaps(graffitiSnap)
                 end
                 local layout = Layout {zone = zone, patterns = patterns}
-                city.built = city.built + 1
             end
         end
     end)
@@ -253,7 +249,6 @@ function City:new(params)
         }
     end
     self.districts = {}
-    self.built = 0
 end
 
 function City:save() return {snaps = iter.map(self.snaps, Snap.save)} end
@@ -261,32 +256,26 @@ function City:save() return {snaps = iter.map(self.snaps, Snap.save)} end
 function City.load(data) return City {load = data} end
 
 function City:setup()
-    async(function()
-        local liberation = Obj.get {tag = 'Liberation'}
+    return async(function()
+        local liberation = Obj {tag = 'Liberation'}
         liberation.shuffle()
-        layDistricts(self, liberation)
-        async.fork(function()
-            async(function()
-                liberation:snapTo({position = {-40, 30, 0}})
-                async.pause()
-                liberation.destroy()
-            end)
+        layDistricts(self, liberation):await()
 
-            local districtsA = Obj.get {tags = {'District', 'A'}}
-            districtsA.shuffle()
-            layDistricts(self, districtsA, 'A', true)
-            local districtsB = Obj.get {tags = {'District', 'B'}}
-            districtsB.shuffle()
-            layDistricts(self, districtsB, 'B', true)
-            local districtsC = Obj.get {tags = {'District', 'C'}}
-            districtsC.shuffle()
+        local districtsA = Obj {tags = {'District', 'A'}}
+        districtsA.shuffle()
+        local districtsB = Obj {tags = {'District', 'B'}}
+        districtsB.shuffle()
+        local districtsC = Obj {tags = {'District', 'C'}}
+        districtsC.shuffle()
+
+        async.par {
+            liberation:leaveTowards{position = {-60, 30, 0}},
+            layDistricts(self, districtsA, 'A', true),
+            layDistricts(self, districtsB, 'B', true),
             layDistricts(self, districtsC, 'C', true)
-            async(function()
-                async.wait(function() return self.built == 25 end)
-                self.graph = Graph(self)
-            end)
-        end)
-        async.pause()
+        }:await()
+
+        self.graph = Graph(self)
     end)
 end
 

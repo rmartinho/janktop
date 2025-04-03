@@ -1,6 +1,7 @@
 local Obj = require 'tts/obj'
 local Track = require 'tts/track'
 local Tracker = require 'tts/tracker'
+local async = require 'tts/async'
 
 return function(load)
     load.flame = function(data)
@@ -15,10 +16,12 @@ return function(load)
         end
 
         function flame:setup()
-            Tracker.setup(self, turns.i)
-            for i = #turns.players + 1, #self.track do
-                table.remove(self.track.points)
-            end
+            return async(function()
+                Tracker.setup(self, turns.i):await()
+                for i = #turns.players + 1, #self.track do
+                    table.remove(self.track.points)
+                end
+            end)
         end
 
         function flame:color() return turns.players[self:index()] end
