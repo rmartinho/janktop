@@ -73,19 +73,18 @@ function Discard:deal1()
         elseif draw.type == 'Card' then
             if self.locks then draw.setLock(false) end
             if self.flip then draw.flip() end
-            draw:snapTo({position = dropPos}, dropOffset):await()
             self:unlock()
-            async.rest(draw):await()
+            draw:snapTo({position = dropPos}, dropOffset):await()
             self:lock()
             if self.onDeal then self:onDeal(draw):await() end
             if self.onTopChanged then self:onTopChanged():await() end
         else
+            self:unlock()
             local card = draw.takeObject {
                 position = Vector(dropPos) + dropOffset,
                 rotation = self.discard.rotation,
                 flip = self.flip
             }
-            self:unlock()
             async.rest(card):await()
             self:lock()
             if self.onDeal then self:onDeal(card):await() end
