@@ -48,8 +48,6 @@ function setup()
     async(function()
         board:setup():await()
         async.apause():await()
-        -- city:setup():await() staging:setup():await() loot:setup():await() barricades:setup():await()
-        -- graffiti:setup():await() dice:setup():await()
 
         async.par {
             city:setup(), staging:setup(), loot:setup(), barricades:setup(),

@@ -12,8 +12,7 @@ return function(load)
             if gameMode == 'conflict' then
                 broadcastToAll(
                     'Conflict agendas: at least one player wins alone')
-            end
-            if gameMode == 'cooperation' then
+            elseif gameMode == 'cooperation' then
                 broadcastToAll('Cooperation agendas: everyone wins together')
             else
                 broadcastToAll('Standard agendas: maybe some players win alone')

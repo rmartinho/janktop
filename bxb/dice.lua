@@ -26,27 +26,24 @@ return function(load)
             }
             return layout:insert(getObjectsWithTag('Die'))
         end
-    
+
         function dice:roll()
             local n = 3
             local faction = factions[turns:current()]
             local blocZone = factionZones[faction]
-            local blocsLeft = iter.count(blocZone.getObjects(),
-                function(b)
-                    return b.hasTag('Bloc')
-                end)
-            if blocsLeft < 6 then n = n+1 end
-            if blocsLeft < 2 then n = n+1 end
+            local blocsLeft = iter.count(blocZone.getObjects(), function(b)
+                return b.hasTag('Bloc')
+            end)
+            if blocsLeft < 6 then n = n + 1 end
+            if blocsLeft < 2 then n = n + 1 end
             local zone = Obj {tag = 'Dice Area'}
             local dies = zone.getObjects()
             local toRoll = {}
-            for i = 1,n do
+            for i = 1, n do
                 table.insert(toRoll, dies[i])
                 dies[i].addTag('Active Die')
             end
-            for i=n+1,5 do
-                dies[i].removeTag('Active Die')
-            end
+            for i = n + 1, 5 do dies[i].removeTag('Active Die') end
             return async(function()
                 Layout.of(zone):layout():await()
                 async.par(iter.map(toRoll, function(d)
