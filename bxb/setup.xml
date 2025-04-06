@@ -15,6 +15,10 @@
             preferredHeight="50"
         >Setup</Button>
         <Text id="difficultyText">Difficulty: Easy</Text>
+        <Toggle
+            id="beginnerToggle"
+            onValueChanged="Global/onBeginnerChanged"
+        >Beginner Game</Toggle>
         <Slider
             id="difficultySlider"
             onValueChanged="Global/onDifficultyChanged"

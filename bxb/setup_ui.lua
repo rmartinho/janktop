@@ -3,8 +3,19 @@ return function(load)
         if data then
             UI.setAttribute('setupPanel', 'active', 'false')
         else
+            beginner = false
             difficulty = 1
             local difficultyNames = {'Easy', 'Medium', 'Hard', 'Expert'}
+            function onDifficultyChanged(player, value)
+                UI.setAttribute('difficultyText', 'text', 'Difficulty: ' ..
+                                    difficultyNames[tonumber(value)])
+                difficulty = tonumber(value)
+            end
+
+            function onBeginnerChanged(player, value)
+                beginner = value == 'True'
+            end
+
             function onDifficultyChanged(player, value)
                 UI.setAttribute('difficultyText', 'text', 'Difficulty: ' ..
                                     difficultyNames[tonumber(value)])

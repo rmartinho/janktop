@@ -129,11 +129,16 @@ local terrainProps = {
     }
 }
 
-function layDistricts(city, deck, tag)
+function layDistricts(city, deck, tag, signs)
     local districtIndices = {
         A = {25, 22, 20, 17, 13, 9, 6, 4, 1},
         B = {23, 19, 16, 14, 11, 8, 5, 2},
         C = {24, 21, 18, 15, 12, 10, 7, 3}
+    }
+    local beginnerRotations = {
+        A = {3, 1, 3, 0, 0, 3, 0, 0, 3},
+        B = {0, 2, 2, 2, 3, 2, 0, 2},
+        C = {0, 3, 2, 1, 3, 0, 2, 1}
     }
     return async(function()
         local snaps = tag and
@@ -149,7 +154,11 @@ function layDistricts(city, deck, tag)
             local rot
             local card
             if tag then
-                rot = math.random(0, 3)
+                if beginner then
+                    rot = table.remove(beginnerRotations[tag])
+                else
+                    rot = math.random(0, 3)
+                end
                 rotation = {0, (rot + 2) * 90, 180}
             end
             local move
@@ -178,8 +187,14 @@ function layDistricts(city, deck, tag)
             end
         end
         moved = async.par(moved):await()
+        local signMoves = {}
         for _, c in pairs(moved) do
             c.setLock(true)
+            local metroSnap = Snap.get{base = c, tag = 'Metro Sign'}[1]
+            if metroSnap then
+                local sign = table.remove(signs)
+                table.insert(signMoves, Obj.use(sign):snapTo(metroSnap))
+            end
             if tag then
                 local zone = spawnObject {
                     type = 'ScriptingTrigger',
@@ -235,6 +250,7 @@ function layDistricts(city, deck, tag)
                 local layout = Layout {zone = zone, patterns = patterns}
             end
         end
+        if #signMoves > 0 then async.par(signMoves):await() end
     end)
 end
 
@@ -265,17 +281,20 @@ function City:setup()
         layDistricts(self, liberation):await()
 
         local districtsA = Obj {tags = {'District', 'A'}}
-        districtsA.shuffle()
         local districtsB = Obj {tags = {'District', 'B'}}
-        districtsB.shuffle()
         local districtsC = Obj {tags = {'District', 'C'}}
-        districtsC.shuffle()
+        if not beginner then
+            districtsA.shuffle()
+            districtsB.shuffle()
+            districtsC.shuffle()
+        end
 
+        local metro = getObjectsWithTag('Metro Sign')
         async.par {
             liberation:leaveTowards{position = {-60, 30, 0}},
-            layDistricts(self, districtsA, 'A'),
+            layDistricts(self, districtsA, 'A', {metro[1]}),
             layDistricts(self, districtsB, 'B'),
-            layDistricts(self, districtsC, 'C')
+            layDistricts(self, districtsC, 'C', metro)
         }:await()
 
         self.graph = Graph(self)
