@@ -34,6 +34,7 @@ local function advanceSquadsTo(tag)
                          highestOf or lowestOf
 
     local movements = {}
+    local dismantles = {}
     for _, source in ipairs(city.districts) do
         local squads = squadsIn(source.zone)
         local hasOccupation = iter.find(source.zone.getObjects(), function(o)
@@ -58,22 +59,31 @@ local function advanceSquadsTo(tag)
                 end
             end))
             if target then
+                local b = barricades:between(source.index, target.index)
                 local movingSquads = {table.unpack(squads)}
                 table.remove(movingSquads)
-                movements[target.index] = movements[target.index] or {}
-                for _, s in ipairs(movingSquads) do
-                    table.insert(movements[target.index], s)
-                end
+                local blocked = math.min(b >= 3 and 999 or b, #movingSquads)
+                local dismantled = math.min(blocked, 3)
+                for i = 1, blocked do table.remove(movingSquads) end
+                dismantles[source.index] = {to = target.index, n = dismantled}
+                movements[source.index] = {
+                    to = target.index,
+                    squads = movingSquads,
+                    barricades = dismantled
+                }
             end
         end
     end
 
-    local moves = {}
-    for i, squads in pairs(movements) do
-        local layout = Layout.of(city.districts[i].zone)
-        table.insert(moves, layout:insert(squads))
-    end
-    return async.par(moves)
+    return async(function()
+        for from, m in pairs(movements) do
+            local d = dismantles[from]
+            local layout = Layout.of(city.districts[m.to].zone)
+            async.par {
+                barricades:remove(from, d.to, d.n), layout:insert(m.squads)
+            }:await()
+        end
+    end)
 end
 
 local function rotateSquads()

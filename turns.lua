@@ -48,7 +48,7 @@ function Turns:setup()
     end
     local hands = Hands.getHands()
     local function handWithIndex(i)
-        return iter.find(hands, function(h) return h.hasTag('n' .. i) end)
+        return iter.find(hands, function(h) return h.hasTag('n ' .. i) end)
     end
     if self.random then
         self.players = {}

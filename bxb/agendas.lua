@@ -6,6 +6,10 @@ local discardPosition = {-50, 30, 0}
 
 return function(load)
     load.agendas = function(data)
+        Color.Add('Vanguardist', Color(92 / 255, 176 / 255, 193 / 255))
+        Color.Add('Sectarian', Color(163 / 255, 99 / 255, 219 / 255))
+        Color.Add('Social', Color(251 / 255, 62 / 255, 86 / 255))
+
         local agendas = {}
 
         function agendas:setup()
@@ -31,17 +35,12 @@ return function(load)
                 else
                     deck.shuffle()
                     async.apause():await()
-                    local cardColors = {
-                        ['Vanguardist'] = Color(92 / 255, 176 / 255, 193 / 255),
-                        ['Sectarian'] = Color(163 / 255, 99 / 255, 219 / 255),
-                        ['Social'] = Color(251 / 255, 62 / 255, 86 / 255)
-                    }
                     for _, player in pairs(getSeatedPlayers()) do
                         local card = deck.getObjects()[1]
                         deck.deal(1, player)
                         broadcastToColor(
                             'You have a ' .. card.name .. ' agenda', player,
-                            cardColors[card.name])
+                            Color.fromString(card.name))
                     end
                     deck = Obj.use(deck.remainder) or deck
                     deck:leaveTowards{position = discardPosition}:await()

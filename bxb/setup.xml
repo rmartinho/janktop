@@ -1,6 +1,6 @@
 <Panel
     id="setupPanel"
-    width="160" height="230"
+    width="160" height="260"
     offsetXY="0 0"
     color="#80808080"
     rectAlignment="MiddleRight"

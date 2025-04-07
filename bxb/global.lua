@@ -81,13 +81,16 @@ function setup()
         flame:setup():await()
         async.apause():await()
 
-        broadcastToAll('Place your Start occupation in one of your districts',
-                       'Pink')
+        for _, p in pairs(getSeatedPlayers()) do
+            broadcastToColor(
+                'Place your Start occupation in one of your districts', p,
+                Color.fromString(factions[p]))
+        end
 
-        Ready.all():await()
+        --Ready.all():await()
         async.apause():await()
 
-        broadcastToAll('The game is starting!', 'Pink')
+        broadcastToAll('Setup complete.')
 
         phase:setup()
     end)

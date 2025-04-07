@@ -18,17 +18,18 @@ return function(load)
                 for i = 1, #turns.players do
                     local color = turns.players[i]
                     local faction = factions[color]
+                    local factionColor = Color.fromString(faction)
                     broadcastToAll(
                         Player[color].steam_name .. ' will play the ' .. faction,
-                        color)
+                        factionColor)
 
                     local board = Obj {tags = {'Player Board', faction}}
-                    local snap = Snap.get {tags = {'Player Board', 'n' .. i}}
+                    local snap = Snap.get {tags = {'Player Board', 'n ' .. i}}
                     delivered[faction] = true
                     factionOrder[faction] = i
                     board:snapTo(snap[1], {0, 0.5, 0}):await()
                     local layout = Layout {
-                        zone = Obj {tags = {'Player Staging', 'n' .. i}},
+                        zone = Obj {tags = {'Player Staging', 'n ' .. i}},
                         patterns = {
                             ['Bloc'] = Pattern.fromSnaps(Snap.get {
                                 base = board,

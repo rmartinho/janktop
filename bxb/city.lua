@@ -98,7 +98,7 @@ local terrainProps = {
         adjacency = {1, 1, 1, 1}
     },
     ['17 - Neighbors - Gentrifying Residential Zone'] = {
-        priority = 15,
+        priority = 17,
         difficulty = 6,
         adjacency = {1, 1, 1, 1}
     },

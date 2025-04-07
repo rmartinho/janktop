@@ -90,8 +90,8 @@ local function layoutWith(self, dropped, pattern, tag, tags)
 end
 
 function Layout:new(params)
-    self.zone = params.zone
     Layout.zones[params.zone.guid] = self
+    self.zone = params.zone
     self.patterns = params.patterns
     self.pattern = params.pattern
     self.sticky = params.sticky == true
@@ -120,7 +120,7 @@ function Layout.remove(o)
         if l then
             l:drop(p, o)
             async.frames():await()
-            return l:layout()
+            l:layout():await()
         end
     end)
 end

@@ -1,6 +1,8 @@
 local Object = require 'tts/classic'
-local iter = require 'tts/iter'
 local Obj = require 'tts/obj'
+local Layout = require 'tts/layout'
+local Pattern = require 'tts/pattern'
+local iter = require 'tts/iter'
 
 local Snap = Object:extend('Snap')
 
@@ -35,8 +37,14 @@ function Snap:new(params)
                 type = 'ScriptingTrigger',
                 position = self.position,
                 rotation = self.rotation or {0, 0, 0},
-                scale = {0.1, 3, 0.1}
+                scale = params.zoned == true and {0.1, 3, 0.1} or params.zoned
             }
+            if params.zoned ~= true then
+                Layout {
+                    zone = self.zone,
+                    pattern = Pattern.fromSnaps {self}
+                }
+            end
             for _, tag in pairs(params.point.tags) do
                 self.zone.addTag(tag)
             end
@@ -76,7 +84,7 @@ function Snap.get(params)
         local r = {}
         for i = 1, count do
             params.point = iter.find(pts, function(p)
-                return hasAllTags(p, {params.tag, 'n'..i})
+                return hasAllTags(p, {params.tag, 'n ' .. i})
             end)
             table.insert(r, Snap(params))
         end
