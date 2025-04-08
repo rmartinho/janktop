@@ -95,7 +95,7 @@ function setup()
         broadcastToAll('Setup complete.')
 
         phase:setup()
-    end)
+    end):next(nil, print)
 end
 
 function onObjectDrop(player, object) Layout.onDrop(player, object) end

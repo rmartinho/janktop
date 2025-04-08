@@ -29,15 +29,17 @@ return function(load)
 
         function occupations:setup()
             local formations = {}
-            for _, f in pairs(factions) do
-                local starter = Obj {tags = {'Faction Start', f}}
-                table.insert(formations,
-                             form(starter, initialBlocs[#getSeatedPlayers()]))
-                local district = city:districtOf(starter)
-                for _, d in pairs(city:adjacentTo(district)) do
-                    if d.terrain.hasTag('State') then
-                        table.insert(formations, barricades:install(
-                                         district.index, d.index, 3))
+            for _, c in pairs(getSeatedPlayers()) do
+                local starter = Obj {tags = {'Faction Start', factions[c]}}
+                if starter then
+                    table.insert(formations, form(starter,
+                                                  initialBlocs[#getSeatedPlayers()]))
+                    local district = city:districtOf(starter)
+                    for _, d in pairs(city:adjacentTo(district)) do
+                        if d.terrain.hasTag('State') then
+                            table.insert(formations, barricades:install(
+                                             district.index, d.index, 3))
+                        end
                     end
                 end
             end
