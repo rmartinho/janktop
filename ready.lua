@@ -1,9 +1,7 @@
 local iter = require 'tts/iter'
 local async = require 'tts/async'
 
-local Ready = {}
-
-Ready.visibility = {}
+local Ready = {visibility = {}}
 
 local function updateVisibility()
     UI.setAttribute('readyPanel', 'active', 'false')
@@ -21,7 +19,8 @@ local function updateVisibility()
 end
 
 function Ready.all()
-    return Ready.some(iter.map(Player.getPlayers(), function(p) return p.color end))
+    return Ready.some(iter.map(Player.getPlayers(),
+                               function(p) return p.color end))
 end
 
 function Ready.some(colors)
@@ -31,6 +30,8 @@ function Ready.some(colors)
         Ready.counter = #colors
         updateVisibility()
         async.condition(function() return Ready.counter == 0 end):await()
+        Ready.visibility = {}
+        updateVisibility()
     end)
 end
 

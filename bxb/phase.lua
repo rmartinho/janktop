@@ -1,13 +1,16 @@
 local Obj = require 'tts/obj'
 local Track = require 'tts/track'
 local Tracker = require 'tts/tracker'
+local Layout = require 'tts/layout'
 local async = require 'tts/async'
+local iter = require 'tts/iter'
 
 local function doPoliceOps()
     return async(function()
+        if true then return true end -- TODO Remove this once police ops ain't broken
         local steps = morale:steps()
         ops:deal():await()
-        for i=2,steps do
+        for i = 2, steps do
             async.apause():await()
             ops:deal():await()
         end
@@ -17,25 +20,24 @@ end
 
 local function doDiceRoll()
     return async(function()
-        for _, f in pairs(factions) do
-            local starter = Obj {tags = {'Faction Start', f}}
-            local zone = starter.getZones()[1]
-            local layout = Layout.of(zone)
-            local blocZone = Obj {guid = starter.memo}
-            local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
-            if #blocs > 0 and zone.guid ~= starter.memo then
-                local bloc = table.remove(blocs)
-                layout:insert(bloc):await()
-            end
+        local starter = Obj {tags = {'Faction Start', factions[turns:current()]}}
+        local zone = starter.getZones()[1]
+        local layout = Layout.of(zone)
+        local blocZone = Obj {guid = starter.memo}
+        local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
+        if #blocs > 0 and zone.guid ~= starter.memo then
+            local bloc = table.remove(blocs)
+            layout:insert{bloc}:await()
         end
-        dice:roll():await()
+        --dice:roll():await()
         return true
     end)
 end
 
 local function doAction()
     return async(function()
-        broadcastToColor('Perform your actions', turns:current())
+        broadcastToColor('Perform your actions',
+                         Color.fromString(turns:current()))
         Ready.some(turns:current()):await()
         return true
     end)
@@ -86,7 +88,7 @@ return function(load)
         local phases = {
             night = {
                 {name = 'Police Ops', enter = doPoliceOps},
-                {name = 'Dice Roll', enter = doDiceRoll}, 
+                {name = 'Dice Roll', enter = doDiceRoll},
                 {name = 'Action', enter = doAction}
             },
             day = {
@@ -105,10 +107,7 @@ return function(load)
         if data then
             phase = Tracker.load(data)
         else
-            phase = Tracker {
-                marker = Obj.get {tag = 'Phase'},
-                track = nightTrack
-            }
+            phase = Tracker {marker = Obj {tag = 'Phase'}, track = nightTrack}
         end
 
         function phase:setup()

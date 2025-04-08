@@ -104,7 +104,7 @@ end
 function Display:setup()
     return async(function()
         if self.tag then
-            local deck = Obj.get {tags = {self.tag, 'Deck'}}
+            local deck = Obj {tags = {self.tag, 'Deck'}}
             deck.shuffle()
             deck:snapTo(self.draw, dropOffset):await()
             deck.setLock(self.locks)

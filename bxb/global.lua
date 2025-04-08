@@ -88,6 +88,7 @@ function setup()
         end
 
         Ready.all():await()
+        -- TODO add barricades where needed
         async.apause():await()
 
         broadcastToAll('Setup complete.')
