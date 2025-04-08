@@ -2,12 +2,12 @@ local Obj = require 'tts/obj'
 local Track = require 'tts/track'
 local Tracker = require 'tts/tracker'
 local Layout = require 'tts/layout'
+local Ready = require 'tts/ready'
 local async = require 'tts/async'
 local iter = require 'tts/iter'
 
 local function doPoliceOps()
     return async(function()
-        if true then return true end -- TODO Remove this once police ops ain't broken
         local steps = morale:steps()
         ops:deal():await()
         for i = 2, steps do
@@ -20,25 +20,26 @@ end
 
 local function doDiceRoll()
     return async(function()
-        local starter = Obj {tags = {'Faction Start', factions[turns:current()]}}
+        local faction = factions[turns:current()]
+        local starter = Obj {tags = {'Faction Start', faction}}
         local zone = starter.getZones()[1]
         local layout = Layout.of(zone)
-        local blocZone = Obj {guid = starter.memo}
+        local blocZone = Obj {tags = {'Player Staging', faction}}
         local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
-        if #blocs > 0 and zone.guid ~= starter.memo then
+        if #blocs > 0 and zone.guid ~= blocZone.guid then
             local bloc = table.remove(blocs)
             layout:insert{bloc}:await()
         end
-        --dice:roll():await()
+        dice:roll():await()
         return true
     end)
 end
 
 local function doAction()
     return async(function()
-        broadcastToColor('Perform your actions',
+        broadcastToColor('Use your action dice to perform actions', turns:current(),
                          Color.fromString(turns:current()))
-        Ready.some(turns:current()):await()
+        Ready.some{turns:current()}:await()
         return true
     end)
 end
@@ -124,9 +125,13 @@ return function(load)
         end
 
         function phase:onStep(i)
+            local faction = factions[turns:current()]
+            if self:isNight() and i == 1 then
+                broadcastToAll('Turn Start: ' .. faction, Color.fromString(turns:current()))
+                end
             self.marker.setDescription(
                 'Current Phase: ' .. self:phase(i).name .. '\n' ..
-                    'Current Faction: ' .. factions[turns:current()])
+                    'Current Faction: ' .. faction)
         end
 
         function phase:onLoop()

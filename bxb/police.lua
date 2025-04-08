@@ -12,13 +12,8 @@ return function(load)
             return async(function()
                 local staging = Obj {tag = 'Staging Area'}
                 local objects = staging.getObjects()
-                local vans = iter.filter(objects,
-                                         function(o)
-                    return o.hasTag('Van')
-                end)
-                local squads = iter.filter(objects, function(o)
-                    return o.hasTag('Squad')
-                end)
+                local vans = iter.filterTag(objects,'Van')
+                local squads = iter.filterTag(objects, 'Squad')
                 local moves = {}
                 for i = 1, 25 do
                     local d = city.districts[i]

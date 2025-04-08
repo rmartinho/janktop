@@ -15,6 +15,9 @@ function iter.count(t, f)
     for _, v in ipairs(t) do if f(v) then c = c + 1 end end
     return c
 end
+function iter.countTag(os, tag)
+    return iter.count(os, function(o) return o.hasTag(tag) end)
+end
 
 function iter.find(t, f) for _, v in ipairs(t) do if f(v) then return v end end end
 function iter.findTag(os, tag)

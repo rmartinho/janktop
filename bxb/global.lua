@@ -45,7 +45,7 @@ end
 function setup()
     UI.setAttribute('setupPanel', 'active', 'false')
     broadcastToAll('Setting up the game...')
-    async.pauseDuration = 10
+    async.pauseDuration = 1
     async(function()
         board:setup():await()
         async.pause():await()
@@ -81,13 +81,6 @@ function setup()
 
         flame:setup():await()
         async.pause():await()
-
-        for _, p in pairs(getSeatedPlayers()) do
-            broadcastToColor(
-                'Place your Start occupation in one of your districts', p,
-                Color.fromString(factions[p]))
-        end
-        Ready.all():await()
 
         occupations:setup()
         async.pause():await()

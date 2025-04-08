@@ -1,5 +1,6 @@
 local Obj = require 'tts/obj'
 local Layout = require 'tts/layout'
+local Ready = require 'tts/ready'
 local async = require 'tts/async'
 local iter = require 'tts/iter'
 
@@ -28,13 +29,23 @@ return function(load)
         end
 
         function occupations:setup()
+            for _, p in pairs(getSeatedPlayers()) do
+                local starter = Obj {tags = {'Faction Start', factions[p]}}
+                local color = Color.fromString(factions[p])
+                starter.highlightOn(color, 10)
+                broadcastToColor(
+                    'Place your Start occupation in one of your districts', p,
+                    color)
+            end
+            Ready.all():await()
+
             local formations = {}
-            for _, c in pairs(getSeatedPlayers()) do
-                local starter = Obj {tags = {'Faction Start', factions[c]}}
-                if starter then
+            for _, p in pairs(getSeatedPlayers()) do
+                local starter = Obj {tags = {'Faction Start', factions[p]}}
+                local district = starter and city:districtOf(starter)
+                if district then
                     table.insert(formations, form(starter,
                                                   initialBlocs[#getSeatedPlayers()]))
-                    local district = city:districtOf(starter)
                     for _, d in pairs(city:adjacentTo(district)) do
                         if d.terrain.hasTag('State') then
                             table.insert(formations, barricades:install(

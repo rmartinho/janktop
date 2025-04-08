@@ -28,8 +28,10 @@ return function(load)
                     delivered[faction] = true
                     factionOrder[faction] = i
                     board:snapTo(snap[1], {0, 0.5, 0}):await()
+                    local zone = Obj {tags = {'Player Staging', 'n ' .. i}}
+                    zone.addTag(faction)
                     local layout = Layout {
-                        zone = Obj {tags = {'Player Staging', 'n ' .. i}},
+                        zone = zone,
                         patterns = {
                             ['Bloc'] = Pattern.fromSnaps(Snap.get {
                                 base = board,
