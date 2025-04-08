@@ -48,39 +48,39 @@ function setup()
     async.pauseDuration = 10
     async(function()
         board:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         async.par {
             city:setup(), staging:setup(), loot:setup(), barricades:setup(),
             graffiti:setup(), dice:setup()
         }:await()
-        async.apause():await()
+        async.pause():await()
 
         countdown:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         async.par {ops:setup(), police:setup()}:await()
         morale:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         reaction:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         conditions:setup():await()
         meeting:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         turns:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         playerBoards:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         agendas:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         flame:setup():await()
-        async.apause():await()
+        async.pause():await()
 
         for _, p in pairs(getSeatedPlayers()) do
             broadcastToColor(
@@ -90,7 +90,7 @@ function setup()
         Ready.all():await()
 
         occupations:setup()
-        async.apause():await()
+        async.pause():await()
 
         broadcastToAll('Setup complete.')
 

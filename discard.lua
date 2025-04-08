@@ -54,7 +54,7 @@ function Discard:deal(n)
         n = n or 1
         for i = 1, n do
             self:deal1():await()
-            async.apause():await()
+            async.pause():await()
         end
     end)
 end

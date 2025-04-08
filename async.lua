@@ -39,22 +39,7 @@ async.race = Promise.first
 
 async.par = Promise.all
 
-function async.apause(n) return async.frames(n or async.pauseDuration or 1) end
-
---- BEGIN GARBAGE ---
-async.wait = Thread.wait
-
-function async.pause(n) return async.wait(n or async.pauseDuration or 1) end
-
-function async.fork(f)
-    local active = Thread.active
-    Thread.active = nil
-    local r = f()
-    Thread.active = active
-    return r
-end
-
---- END GARBAGE ---
+function async.pause(n) return async.frames(n or async.pauseDuration or 1) end
 
 setmetatable(async, {__call = function(self, ...) return self.run(...) end})
 

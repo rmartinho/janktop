@@ -34,7 +34,7 @@ return function(load)
                     deck:leaveTowards{position = discardPosition}:await()
                 else
                     deck.shuffle()
-                    async.apause():await()
+                    async.pause():await()
                     for _, player in pairs(getSeatedPlayers()) do
                         local card = deck.getObjects()[1]
                         deck.deal(1, player)

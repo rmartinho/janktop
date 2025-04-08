@@ -11,7 +11,7 @@ local function doPoliceOps()
         local steps = morale:steps()
         ops:deal():await()
         for i = 2, steps do
-            async.apause():await()
+            async.pause():await()
             ops:deal():await()
         end
         return true
@@ -166,7 +166,7 @@ return function(load)
                 phase = self:phase()
                 if phase and phase.enter then
                     if phase:enter():await() then
-                        async.apause():await()
+                        async.pause():await()
                         self:advance():await()
                     end
                 end
