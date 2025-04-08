@@ -95,6 +95,33 @@ return function(load)
             return #barricades
         end
 
+        local reserved = {}
+
+        function barricades:install(i, j, n)
+            return async(function()
+                n = n or 1
+                local snap = self.snaps[i][j]
+                local existing = #snap.zone.getObjects()
+                local storage = Obj {tag = 'Barricade Area'}
+                local bs = iter.filter(storage.getObjects(), function(o)
+                    return not reserved[o.guid]
+                end)
+                local layout = Layout.of(snap.zone)
+                local installs = {}
+                for i = existing + 1, n do
+                    local b = table.remove(bs)
+                    if b then
+                        table.insert(installs, b)
+                        reserved[b.guid] = true
+                    end
+                end
+                layout:insert(installs):await()
+                for _, b in pairs(installs) do
+                    reserved[b.guid] = nil
+                end
+            end)
+        end
+
         function barricades:remove(i, j, n)
             return async(function()
                 n = n or 3

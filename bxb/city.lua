@@ -149,7 +149,6 @@ function layDistricts(city, deck, tag, signs)
         local rotation = nil
         local moved = {}
         local remainder = nil
-        local districts = {}
         for _, s in pairs(snaps) do
             local rot
             local card
@@ -183,7 +182,7 @@ function layDistricts(city, deck, tag, signs)
                     rot = rot,
                     props = terrainProps[card.getName()]
                 }
-                districts[card.guid] = city.districts[ix]
+                city.districtsByTerrain[card.guid] = city.districts[ix]
             end
         end
         moved = async.par(moved):await()
@@ -203,8 +202,8 @@ function layDistricts(city, deck, tag, signs)
                 }
                 zone.addTag('Liberation')
                 zone.addTag('District')
-                districts[c.guid].zone = zone
-                districts[c.guid].liberation =
+                city.districtsByTerrain[c.guid].zone = zone
+                city.districtsByTerrain[c.guid].liberation =
                     iter.find(zone.getObjects(),
                               function(o)
                         o.hasTag('Liberation')
@@ -268,6 +267,7 @@ function City:new(params)
         }
     end
     self.districts = {}
+    self.districtsByTerrain = {}
 end
 
 function City:save() return {snaps = iter.map(self.snaps, Snap.save)} end
@@ -307,6 +307,14 @@ function City:adjacentTo(district)
         table.insert(adjacent, self.districts[n])
     end
     return adjacent
+end
+
+function City:districtOf(obj)
+    local zone = obj.getZones()[1]
+    if not zone then return end
+    local terrain = iter.findTag(zone.getObjects(), 'Terrain')
+    if not terrain then return end
+    return self.districtsByTerrain[terrain.guid]
 end
 
 local clashColor = 'Red'

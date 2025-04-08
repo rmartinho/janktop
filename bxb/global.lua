@@ -26,6 +26,7 @@ require("tts/bxb/barricades")(loader)
 require("tts/bxb/staging")(loader)
 require("tts/bxb/dice")(loader)
 require("tts/bxb/police")(loader)
+require("tts/bxb/occupations")(loader)
 
 function onLoad(saveData)
     local saved = JSON.decode(saveData) or {}
@@ -86,9 +87,9 @@ function setup()
                 'Place your Start occupation in one of your districts', p,
                 Color.fromString(factions[p]))
         end
-
         Ready.all():await()
-        -- TODO add barricades where needed
+
+        occupations:setup()
         async.apause():await()
 
         broadcastToAll('Setup complete.')
