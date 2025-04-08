@@ -5,14 +5,18 @@ local async = require 'tts/async'
 
 local function doPoliceOps()
     return async(function()
+        local steps = morale:steps()
         ops:deal():await()
+        for i=2,steps do
+            async.apause():await()
+            ops:deal():await()
+        end
         return true
     end)
 end
 
 local function doDiceRoll()
     return async(function()
-        local toForm = {}
         for _, f in pairs(factions) do
             local starter = Obj {tags = {'Faction Start', f}}
             local zone = starter.getZones()[1]
@@ -20,21 +24,59 @@ local function doDiceRoll()
             local blocZone = Obj {guid = starter.memo}
             local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
             if #blocs > 0 and zone.guid ~= starter.memo then
-                table.insert(toForm, async(function()
-                    local bloc = table.remove(blocs)
-                    layout:insert(bloc):await()
-                end))
+                local bloc = table.remove(blocs)
+                layout:insert(bloc):await()
             end
         end
-        async.par(toForm):await()
         dice:roll():await()
+        return true
+    end)
+end
+
+local function doAction()
+    return async(function()
+        broadcastToColor('Perform your actions', turns:current())
+        Ready.some(turns:current()):await()
+        return true
+    end)
+end
+
+local function doReaction()
+    return async(function()
+        reaction:deal():await()
+        Ready.all():await()
+        return true
+    end)
+end
+
+local function doLiberation()
+    return async(function()
+        -- TODO
+        Ready.all():await()
+        return true
+    end)
+end
+
+local function doMeeting()
+    return async(function()
+        meeting:conduct():await()
+        return true
+    end)
+end
+
+local function doVictory()
+    return async(function()
+        -- TODO
+        broadcastToAll('Check win conditions')
+        Ready.all():await()
         return true
     end)
 end
 
 local function doCountdown()
     return async(function()
-        countdown:advance()
+        local steps = morale:steps()
+        countdown:advance(steps)
         return true
     end)
 end
@@ -44,15 +86,13 @@ return function(load)
         local phases = {
             night = {
                 {name = 'Police Ops', enter = doPoliceOps},
-                {name = 'Dice Roll', enter = doDiceRoll}, {name = 'Action'}
+                {name = 'Dice Roll', enter = doDiceRoll}, 
+                {name = 'Action', enter = doAction}
             },
             day = {
-                {name = 'Reaction', enter = startReaction, exit = endReaction},
-                {
-                    name = 'Liberation',
-                    enter = startLiberation,
-                    exit = endLiberation
-                }, {name = 'Meeting', enter = startMeeting, exit = endMeeting},
+                {name = 'Reaction', enter = doReaction},
+                {name = 'Liberation', enter = doLiberation},
+                {name = 'Meeting', enter = doMeeting},
                 {name = 'Victory', enter = doVictory},
                 {name = 'Countdown', enter = doCountdown}
             }
@@ -127,6 +167,7 @@ return function(load)
                 phase = self:phase()
                 if phase and phase.enter then
                     if phase:enter():await() then
+                        async.apause():await()
                         self:advance():await()
                     end
                 end

@@ -309,6 +309,61 @@ function City:adjacentTo(district)
     return adjacent
 end
 
+local clashColor = 'Red'
+
+function City:highlightClashes()
+    for _, d in pairs(self.districts) do
+        local objs = d.zone.getObjects()
+        local hasSquad = iter.findTag(objs, 'Squad')
+        local hasVan = iter.findTag(objs, 'Van')
+        local hasBloc = iter.findTag(objs, 'Bloc')
+        if (hasSquad or hasVan) and hasBloc then
+            d.highlightOn(clashColor)
+        else
+            d.highlightOff(clashColor)
+        end
+    end
+end
+
+function City:highlightLiberable()
+    for _, d in pairs(self.districts) do
+        local objs = d.zone.getObjects()
+        local hasSquad = iter.findTag(objs, 'Squad')
+        local hasVan = iter.findTag(objs, 'Van')
+        local blocs = iter.countTag(objs, 'Bloc')
+        local adjacent = d.terrain.hasTag('Public')
+        if not adjacent then
+            local adjs = self.graph:adjacentTo(d.index)
+            adjacent = iter.any(adjs, function(i)
+                return self.districts[i].liberated
+            end)
+        end
+        if not d.liberated and adjacent and not hasSquad and not hasVan and blocs >= d.props.difficulty * 2 then
+            -- TODO button
+        else
+            -- TODO not button
+        end
+    end
+end
+
+function City:liberate(i)
+    return async(function()
+        local d = self.districts[i]
+        async.par {
+            d.liberation:snapTo(self.liberationPoint),
+            d.terrain:flip()
+        }:await()
+        d.props.priority = d.props.lpriority
+        d.liberated = true
+        Ready.some(liberatingPlayers):await()
+        d.liberation:leaveTowards{-60, 30, 0}:await()
+        morale:reverse()
+        if d.terrain.hasTag('Public') then
+            countdown:reverse()
+        end
+    end)
+end
+
 return function(load)
     load.city = function(data)
         local city

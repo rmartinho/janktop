@@ -37,10 +37,9 @@ return function(load)
             end)
         end
 
-        function countdown:advance()
+        function countdown:advance(n)
             return async(function()
-                local steps = morale:steps()
-                for i = 1, steps do Tracker.advance(self):await() end
+                for i = 1, n do Tracker.advance(self):await() end
                 announce(self)
             end)
         end

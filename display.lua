@@ -94,6 +94,13 @@ function Display:topOfDraw()
     end
 end
 
+function Display:count()
+    return iter.count(self.displays, function(d)
+        return #d.zone.getObjects() > 0
+    end)
+    -- TODO flipped self state (maybe just an extra snappy)
+end
+
 function Display:setup()
     return async(function()
         if self.tag then

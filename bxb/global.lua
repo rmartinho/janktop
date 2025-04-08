@@ -87,7 +87,7 @@ function setup()
                 Color.fromString(factions[p]))
         end
 
-        --Ready.all():await()
+        Ready.all():await()
         async.apause():await()
 
         broadcastToAll('Setup complete.')
