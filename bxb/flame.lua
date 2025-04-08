@@ -27,7 +27,8 @@ return function(load)
         function flame:color() return turns.players[self:index()] end
 
         function flame:onStep(i)
-            broadcastToAll('First faction is ' .. factions[turns:current()])
+            broadcastToAll('First faction is ' .. factions[turns:current()],
+                           Color.fromString(factions[turns:current()]))
             self.marker.setDescription('First Faction: ' ..
                                            factions[turns:current()])
         end
