@@ -14,7 +14,7 @@ function Layout.of(zone) return Layout.zones[zone.guid] end
 function Layout.onDrop(p, o)
     local dropped = {}
     local zones = o.getZones()
-    if #zones == 0 and o.hasTag('Return') then
+    if #zones == 0 and o.hasTag('Return') and o.memo then
         local z = Obj.get {guid = o.memo}
         table.insert(zones, z)
     end
