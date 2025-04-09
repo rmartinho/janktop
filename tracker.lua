@@ -1,7 +1,6 @@
 local Object = require 'tts/classic'
 local Obj = require 'tts/obj'
 local Track = require 'tts/track'
-local Promise = require 'tts/promise'
 local async = require 'tts/async'
 
 local Tracker = Object:extend('Tracker')
@@ -33,7 +32,7 @@ function Tracker:advance(n)
         local i = self:index() or 0
         local a = self:reset(i + n):await()
         local i2, looped = a
-        if looped and self.onLoop then Promise.ok(self:onLoop()):await() end
+        if looped and self.onLoop then self:onLoop():await() end
         return i2, looped
     end)
 end
@@ -52,7 +51,7 @@ function Tracker:reset(i)
         local i2, looped = self.track:boundedIndex(i or 1)
         local pt = self.track.points[i2]
         self.marker:snapTo(pt, dropOffset):await()
-        if self.onStep then Promise.ok(self:onStep(i2, looped)):await() end
+        if self.onStep then self:onStep(i2, looped):await() end
         return {i2, looped}
     end)
 end

@@ -90,6 +90,7 @@ return function(load)
 
         function barricades:between(i, j)
             local snap = self.snaps[i][j]
+            if not snap then return 0 end -- HACK workaround for broken highways
             local barricades = snap.zone.getObjects()
 
             return #barricades
