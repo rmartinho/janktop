@@ -14,18 +14,18 @@
             onClick="Global/setup"
             preferredHeight="50"
         >Setup</Button>
-        <Text id="difficultyText">Difficulty: Easy</Text>
         <Toggle
             id="beginnerToggle"
             onValueChanged="Global/onBeginnerChanged"
         >Beginner Game</Toggle>
+        <Text id="difficultyText">Difficulty: Medium</Text>
         <Slider
             id="difficultySlider"
             onValueChanged="Global/onDifficultyChanged"
             minValue="1"
             maxValue="4"
             wholeNumbers="true"
-            value="1" />
+            value="2" />
         <ToggleGroup id="agendaToggle">
             <VerticalLayout>
                 <ToggleButton
