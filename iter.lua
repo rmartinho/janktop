@@ -53,7 +53,6 @@ end
 
 function iter.any(t, f)
     f = f or function(x) return x end
-    local r = {}
     for _, v in ipairs(t) do if f(v) then return true end end
     return false
 end
