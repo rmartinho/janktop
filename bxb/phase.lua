@@ -37,15 +37,16 @@ end
 
 local function doAction()
     return async(function()
-        broadcastToColor('Use your action dice to perform actions', turns:current(),
-                         Color.fromString(turns:current()))
-        Ready.some{turns:current()}:await()
+        broadcastToColor('Use your action dice to perform actions',
+                         turns:current(), Color.fromString(turns:current()))
+        Ready.some {turns:current()}:await()
         return true
     end)
 end
 
 local function doReaction()
     return async(function()
+        broadcastToAll('Reaction Phase')
         reaction:deal():await()
         Ready.all():await()
         return true
@@ -55,6 +56,7 @@ end
 local function doLiberation()
     return async(function()
         -- TODO
+        broadcastToAll('Liberation Phase')
         Ready.all():await()
         return true
     end)
@@ -62,7 +64,10 @@ end
 
 local function doMeeting()
     return async(function()
-        meeting:conduct():await()
+        -- TODO
+        broadcastToAll('Meeting Phase')
+        Ready.all():await()
+        -- meeting:conduct():await()
         return true
     end)
 end
@@ -125,13 +130,16 @@ return function(load)
         end
 
         function phase:onStep(i)
-            local faction = factions[turns:current()]
-            if self:isNight() and i == 1 then
-                broadcastToAll('Turn Start: ' .. faction, Color.fromString(turns:current()))
+            return async(function()
+                local faction = factions[turns:current()]
+                if self:isNight() and i == 1 then
+                    broadcastToAll('Turn Start: ' .. faction,
+                                   Color.fromString(turns:current()))
                 end
-            self.marker.setDescription(
-                'Current Phase: ' .. self:phase(i).name .. '\n' ..
-                    'Current Faction: ' .. faction)
+                self.marker.setDescription(
+                    'Current Phase: ' .. self:phase(i).name .. '\n' ..
+                        'Current Faction: ' .. faction)
+            end)
         end
 
         function phase:onLoop()

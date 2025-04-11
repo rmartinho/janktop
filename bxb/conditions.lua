@@ -39,6 +39,7 @@ return function(load)
 
         function conditions:setup()
             return async(function()
+                -- TODO remove unwanted conditions
                 Display.setup(self):await()
                 self:deal():await()
             end)

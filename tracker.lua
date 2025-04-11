@@ -23,17 +23,14 @@ function Tracker.load(data) return Tracker {load = data} end
 
 function Tracker:rebind(track, i)
     self.track = track
-    return self:reset(i):await()
+    return self:reset(i)
 end
 
 function Tracker:advance(n)
     return async(function()
         n = n or 1
         local i = self:index() or 0
-        local a = self:reset(i + n):await()
-        local i2, looped = a
-        if looped and self.onLoop then self:onLoop():await() end
-        return i2, looped
+        self:reset(i + n):await()
     end)
 end
 
@@ -52,7 +49,7 @@ function Tracker:reset(i)
         local pt = self.track.points[i2]
         self.marker:snapTo(pt, dropOffset):await()
         if self.onStep then self:onStep(i2, looped):await() end
-        return {i2, looped}
+        if looped and self.onLoop then self:onLoop():await() end
     end)
 end
 

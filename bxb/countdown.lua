@@ -27,7 +27,9 @@ return function(load)
         end
 
         function countdown:onStep(i)
-            self.marker.setDescription(description)
+            return async(function()
+                self.marker.setDescription(description)
+            end)
         end
 
         function countdown:setup()

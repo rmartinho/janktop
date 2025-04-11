@@ -66,14 +66,14 @@ function setup()
         reaction:setup():await()
         async.pause():await()
 
-        conditions:setup():await()
-        meeting:setup():await()
-        async.pause():await()
-
         turns:setup():await()
         async.pause():await()
 
         playerBoards:setup():await()
+        async.pause():await()
+
+        conditions:setup():await()
+        meeting:setup():await()
         async.pause():await()
 
         agendas:setup():await()

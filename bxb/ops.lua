@@ -3,6 +3,7 @@ local Discard = require 'tts/discard'
 local Layout = require 'tts/layout'
 local iter = require 'tts/iter'
 local async = require 'tts/async'
+local Ready = require 'tts/ready'
 
 local function highestOf(candidates)
     local best = {props = {priority = 0}}
@@ -30,6 +31,10 @@ local function vanIn(zone)
 end
 
 local function advanceSquadsTo(tag)
+    return Ready.all()
+end
+
+local function XXXadvanceSquadsToXXX(tag)
     local criteria = (tag == 'highest' or reaction.priority == 'H') and
                          highestOf or lowestOf
 
@@ -221,6 +226,7 @@ return function(load)
                 broadcastToAll('Police Ops: ' .. card.getName())
                 local f = cardActions[card.getName()]
                 f():await()
+                -- Ready.all():await()
             end)
         end
 
