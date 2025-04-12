@@ -26,7 +26,7 @@ end
 
 function iter.map(t, f)
     local r = {}
-    for _, v in ipairs(t) do table.insert(r, f(v)) end
+    for _, v in ipairs(t) do table.insert(r, (f(v))) end
     return r
 end
 
