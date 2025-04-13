@@ -27,9 +27,11 @@ local function doDiceRoll()
         local blocZone = Obj {tags = {'Player Staging', faction}}
         local blocs = iter.filterTag(blocZone.getObjects(), 'Bloc')
         if #blocs > 0 and zone.guid ~= blocZone.guid then
+            broadcastToAll('Forming bloc at Start occupation', Color.fromString(turns:current()))
             local bloc = table.remove(blocs)
             layout:insert{bloc}:await()
         end
+        broadcastToAll('Rolling dice', Color.fromString(turns:current()))
         dice:roll():await()
         return true
     end)
