@@ -37,6 +37,8 @@ return function(load)
                     if otherState.id == (self.metro and 1 or 2) then
                         o.setState(otherState.id)
                     end
+                    o.highlightOff()
+                    o.highlightOn(color)
                 end
                 if deck then deck.setDescription(top.description) end
             end)
