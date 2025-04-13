@@ -49,9 +49,7 @@ local function layoutWith(self, dropped, pattern, tag, tags)
 
     local function checkTags(o)
         if tag and #tag == 0 then
-            if not iter.any(tags, function(t)
-                return o.hasTag(t)
-            end) then
+            if not iter.any(tags, function(t) return o.hasTag(t) end) then
                 table.insert(objects, o)
                 set[o.guid] = true
             end
@@ -63,13 +61,9 @@ local function layoutWith(self, dropped, pattern, tag, tags)
         end
     end
 
-    for _, o in pairs(self.zone.getObjects()) do
-        checkTags(o)
-    end
+    for _, o in pairs(self.zone.getObjects()) do checkTags(o) end
     for _, o in pairs(dropped) do
-        if not set[o.object.guid] then
-            checkTags(o.object)
-        end
+        if not set[o.object.guid] then checkTags(o.object) end
     end
 
     local points = pattern:points(#objects)
@@ -81,10 +75,17 @@ local function layoutWith(self, dropped, pattern, tag, tags)
             local value = o.getValue()
             points[i].rotation = o.getRotationValues()[value].rotation
         end
-        table.insert(moves, async(function()
-            o:snapTo(points[i], {0, 1, 0}):await()
-            Layout.inserting[o.guid] = nil
-        end))
+        local heightDiff = o.getVisualBoundsNormalized().size.y / 2
+        local diff =
+            Vector.distance(o.getPosition(), Vector(points[i].position)) -
+                heightDiff - o.getVisualBoundsNormalized().offset:magnitude()
+        if diff > 0.015 then
+            table.insert(moves, async(function()
+                o:snapTo(points[i], {0, 1, 0}):await()
+                Layout.inserting[o.guid] = nil
+            end))
+
+        end
     end
     return async.par(moves)
 end
