@@ -84,7 +84,8 @@ local function layoutWith(self, dropped, pattern, tag, tags)
                 o:snapTo(points[i], {0, 1, 0}):await()
                 Layout.inserting[o.guid] = nil
             end))
-
+        else
+            Layout.inserting[o.guid] = nil
         end
     end
     return async.par(moves)
@@ -105,6 +106,7 @@ function Layout:drop(p, o) table.insert(self.dropped, {object = o, player = p}) 
 Layout.inserting = {}
 
 function Layout:insert(objects)
+    if #objects == 0 then return end
     for _, o in pairs(objects) do
         if o.type ~= 'Scripting' then
             Layout.inserting[o.guid] = true

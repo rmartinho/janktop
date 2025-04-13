@@ -90,10 +90,19 @@ return function(load)
 
         function barricades:between(i, j)
             local snap = self.snaps[i][j]
-            if not snap then return 0 end -- HACK workaround for broken highways
+            if not snap then return {} end
             local barricades = snap.zone.getObjects()
 
-            return #barricades
+            return barricades
+        end
+
+        function barricades:alongPath(path)
+            local b = {}
+            for i = 2, #path do
+                local new = self:between(path[i - 1], path[i])
+                for _, n in ipairs(new) do table.insert(b, n) end
+            end
+            return b
         end
 
         local reserved = {}
@@ -134,6 +143,27 @@ return function(load)
                     table.insert(removes, Layout.remove(table.remove(b)))
                 end
                 async.par(removes):await()
+            end)
+        end
+
+        function barricades:removeOnPath(path, n)
+            return async(function()
+                if n == 0 then return end
+                n = n or 3
+                local storage = Obj {tag = 'Barricade Area'}
+                local layout = Layout.of(storage)
+                local removes = {}
+                for i = 2, #path do
+                    if n == 0 then break end
+                    local snap = self.snaps[path[i - 1]][path[i]]
+                    local b = snap.zone.getObjects()
+                    local r = math.min(n, #b)
+                    for i = 1, r do
+                        table.insert(removes, table.remove(b))
+                    end
+                    n = n - r
+                end
+                layout:insert(removes):await()
             end)
         end
 

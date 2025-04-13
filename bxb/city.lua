@@ -203,9 +203,9 @@ function layDistricts(city, deck, tag, signs)
                 zone.addTag('Liberation')
                 zone.addTag('District')
                 city.districtsByTerrain[c.guid].zone = zone
-                city.districtsByTerrain[c.guid].liberation =
-                    iter.find(zone.getObjects(),
-                              function(o)
+                city.districtsByTerrain[c.guid].liberation = iter.find(
+                                                                 zone.getObjects(),
+                                                                 function(o)
                         o.hasTag('Liberation')
                     end)
                 local patterns = {}
@@ -302,11 +302,8 @@ function City:setup()
 end
 
 function City:adjacentTo(district)
-    local adjacent = {}
-    for _, n in ipairs(self.graph:adjacentTo(district.index)) do
-        table.insert(adjacent, self.districts[n])
-    end
-    return adjacent
+    return iter.map(self.graph:adjacentTo(district.index),
+                    function(n) return self.districts[n] end)
 end
 
 function City:districtOf(obj)
@@ -346,7 +343,8 @@ function City:highlightLiberable()
                 return self.districts[i].liberated
             end)
         end
-        if not d.liberated and adjacent and not hasSquad and not hasVan and blocs >= d.props.difficulty * 2 then
+        if not d.liberated and adjacent and not hasSquad and not hasVan and
+            blocs >= d.props.difficulty * 2 then
             -- TODO button
         else
             -- TODO not button
@@ -357,18 +355,13 @@ end
 function City:liberate(i)
     return async(function()
         local d = self.districts[i]
-        async.par {
-            d.liberation:snapTo(self.liberationPoint),
-            d.terrain:flip()
-        }:await()
+        async.par {d.liberation:snapTo(self.liberationPoint), d.terrain:flip()}:await()
         d.props.priority = d.props.lpriority
         d.liberated = true
         Ready.some(liberatingPlayers):await()
         d.liberation:leaveTowards{-60, 30, 0}:await()
         morale:reverse()
-        if d.terrain.hasTag('Public') then
-            countdown:reverse()
-        end
+        if d.terrain.hasTag('Public') then countdown:reverse() end
     end)
 end
 

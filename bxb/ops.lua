@@ -31,10 +31,6 @@ local function vanIn(zone)
 end
 
 local function advanceSquadsTo(tag)
-    return Ready.all()
-end
-
-local function XXXadvanceSquadsToXXX(tag)
     local criteria = (tag == 'highest' or reaction.priority == 'H') and
                          highestOf or lowestOf
 
@@ -64,17 +60,22 @@ local function XXXadvanceSquadsToXXX(tag)
                 end
             end))
             if target then
-                local b = barricades:between(source.index, target.index)
+                local paths = city.graph:squadPaths(source.index, target.index)
+                local bs = iter.map(paths, function(p)
+                    return barricades:alongPath(p)
+                end)
+                local path = paths[1] -- TODO choose paths
+                local b = bs[1]
                 local movingSquads = {table.unpack(squads)}
                 table.remove(movingSquads)
-                local blocked = math.min(b >= 3 and 999 or b, #movingSquads)
+                local blocked = math.min(#b >= 3 and 999 or #b, #movingSquads)
                 local dismantled = math.min(blocked, 3)
                 for i = 1, blocked do table.remove(movingSquads) end
-                dismantles[source.index] = {to = target.index, n = dismantled}
                 movements[source.index] = {
                     to = target.index,
                     squads = movingSquads,
-                    barricades = dismantled
+                    path = path,
+                    dismantles = dismantled
                 }
             end
         end
@@ -82,10 +83,10 @@ local function XXXadvanceSquadsToXXX(tag)
 
     return async(function()
         for from, m in pairs(movements) do
-            local d = dismantles[from]
             local layout = Layout.of(city.districts[m.to].zone)
             async.par {
-                barricades:remove(from, d.to, d.n), layout:insert(m.squads)
+                layout:insert(m.squads),
+                barricades:removeOnPath(m.path, m.dismantles)
             }:await()
         end
     end)
