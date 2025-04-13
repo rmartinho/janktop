@@ -3,6 +3,7 @@ local Snap = require 'tts/snap'
 local Layout = require 'tts/layout'
 local Pattern = require 'tts/pattern'
 local async = require 'tts/async'
+local iter = require 'tts/iter'
 
 return function(load)
     load.meeting = function(data)
@@ -10,12 +11,27 @@ return function(load)
 
         function meeting:setup()
             return async(function()
+                local snaps = Snap.get {
+                    base = Obj {tags = {'Condition', 'Deck'}},
+                    tag = 'Meeting'
+                }
+                local pattern = Pattern:extend()
+                local ixs = {
+                    {1}, {1, 5}, {1, 4, 6}, {1, 3, 5, 7}, {1, 3, 4, 6, 7},
+                    {1, 2, 4, 5, 6, 8}, {1, 2, 3, 4, 6, 7, 8},
+                    {1, 2, 3, 4, 5, 6, 7, 8}, {1, 2, 3, 4, 5, 6, 7, 8, 11},
+                    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+                }
+                function pattern:points(n)
+                    if n > #ixs then n = 10 end
+                    return iter.map(ixs[n], function(i)
+                        return snaps[i]
+                    end)
+                end
+
                 self.layout = Layout {
                     zone = Obj {tag = 'Meeting'},
-                    pattern = Pattern.fromSnaps(Snap.get {
-                        base = Obj {tags = {'Condition', 'Deck'}},
-                        tag = 'Meeting'
-                    })
+                    pattern = pattern
                 }
                 self.scrap = Layout {
                     zone = Obj {tag = 'Meeting Exit'},
